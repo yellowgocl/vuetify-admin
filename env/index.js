@@ -1,7 +1,7 @@
 const path = require('path')
 const filenames = {
     development: '.env.dev',
-    deploy: '.env.deploy',
+    test: '.env.test',
     production: '.env'
 }
 const env = process.env.NODE_ENV

@@ -1,14 +1,14 @@
 export function setItem(key, value) {
-    localStorage.setItem(key, value)
+    process.client && localStorage.setItem(key, value)
 }
 export function getItem(key, defaultValue) {
-    return localStorage.getItem(key) || defaultValue
+    return process.client && localStorage.getItem(key) || defaultValue
 }
 export function removeItem(key) {
-    localStorage.removeItem(key)
+    process.client && localStorage.removeItem(key)
 }
 export function clear() {
-    localStorage.clear()
+    process.client && localStorage.clear()
 }
 
 export default { setItem, getItem, removeItem, clear }

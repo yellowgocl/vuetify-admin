@@ -23,27 +23,59 @@ const _buildArchive = () => {
             "shareCount": "@integer(0, 999)",
             "downloadCount": "@integer(0,9999)",
             "createBy": "@cname",
-            "createDate": "@date",
+            "createDate": new Date().getTime(),
             "updateBy": "@cname",
-            "updateDate": "@now",
+            "updateDate": new Date().getTime(),
             "remarks": "@cword(10, 20)"
-
         }
 }
+_buildUser = () => {
+    return  {
+        "id": "@id",
+        "account": "admin",
+        "avatar": 'https://placem.at/places?h=100&random=@cname&txt',
+        "status": 1,
+        "name": "@cname",
+        "createBy": "@account",
+        "createDate": new Date(),
+        "updateBy": "@account",
+        "updateDate": new Date(),
+        "remarks": null
+    }
+}
+_buildTag = () => {
+    return {
+        "id": '@id',
+        "type": 0,
+        "value": "@cword(2, 6)",
+        "useCount": "@integer(0, 999)",
+        "createBy": "sys:11231",
+        "createDate": 1575965850000,
+        "updateBy": "sys:13123",
+        "updateDate": 1575965850000,
+        "remarks": "@cword(2, 20)",
+        "createSysUser": _buildUser(),
+        "updateSysUser": _buildUser()
+    }
+}
 const mod = {
+    GET_USER_OWN: (req, res) => {
+        res.json({
+            ..._baseResponse(req),
+            data: _buildUser()
+        })
+    },
     GET_DRAWER_MENU: (req, res) => {
         return res.json({
             ..._baseResponse(req),
-            data: {
-                rootId: 1,
-                items: [
-                    { icon: 'dashboard', text: '运营版块', id: 10, parentId: 1, model: true},
-                    { icon: 'settings', text: '权限管理', id: 11, parentId: 1, model: true },
-                    { icon: 'keyboard', text: '发圈素材', id: 100, parentId: 10, url: '/co/material'  },
-                    { icon: 'history', text: '素材分类', id: 101, parentId: 10, url: '/co/category'  },
-                    { icon: 'history', text: '用户管理', id: 200, parentId: 11, url: '#'  },
-                ]
-            }
+            data: [
+                    { icon: 'dashboard', name: '运营版块', id: 10, status: 1 },
+                    { icon: 'settings', name: '系统管理', id: 11, status: 1},
+                    { icon: 'settings_input_component', name: '权限管理', id: 201, parentId: 11, status: 1},
+                    { icon: 'perm_media', name: '发圈素材', id: 100, parentId: 10, url: '/co/material', status: 1 },
+                    { icon: 'category', name: '素材分类', id: 101, parentId: 10, url: '/co/category', status: 1 },
+                    { icon: 'person', name: '用户管理', id: 200, parentId: 11, url: '#', status: 1 },
+            ]
         })
     },
     FILE_UPLOAD: (req, res) => {
@@ -150,7 +182,10 @@ const mod = {
         return res.json({
             code: 200,
             message: 'success',
-            data: {}
+            data: {
+                authorization: 'aasdfasfaasfs',
+                expireIn: 0,
+            }
         })
     },
     IS_SIGN_IN: (req, res) => {
@@ -192,7 +227,25 @@ const mod = {
             }
         }))
     },
-    
+    ARCHIVE_ADD_CATEGORY: (req, res) => {
+        return res.json(mockjs.mock({
+            ..._baseResponse(req),
+            "data": [{
+                "archiveId": 0,
+                "categoryId": 0,
+                "id": 0
+            }]
+        }))
+    },
+    ARCHIVE_GET_CATEGORY: (req, res) => {
+        return res.json({
+            ..._baseResponse(req),
+            data: [
+                { name: '分类1-子分类1-子分类1', id: 1000, parentId: 100, type: 0, status: 1, createBy: 'admin', createDate: '', updateBy: 'admin', updateDate: '', remarks: '', orderNum: 0 },
+                { name: '分类2-子分类1-子分类2', id: 3001, parentId: 200, type: 0, status: 1, createBy: 'admin', createDate: '', updateBy: 'admin', updateDate: '', remarks: '', orderNum: 0 },
+            ]
+        })
+    },
     ADD_ARCHIVE: (req, res) => {
         return res.json(mockjs.mock({
             ..._baseResponse(req),
@@ -217,6 +270,30 @@ const mod = {
             data: '@boolean'
         }))
     },
+    ADD_TAG: (req, res) => {
+        return res.json(mockjs.mock({
+            ..._baseResponse(req),
+            data:_buildTag(req)
+        }))
+    },
+    MOD_TAG: (req, res) => {
+        return res.json(mockjs.mock({
+            ..._baseResponse(req),
+            data:_buildTag(req)
+        }))
+    },
+    GET_TAG: (req, res) => {
+        return res.json(mockjs.mock({
+            ..._baseResponse(req),
+            data:_buildTag(req)
+        }))
+    },
+    DEL_TAG: (req, res) => {
+        return res.json(mockjs.mock({
+            ..._baseResponse(req),
+            data: '@boolean'
+        }))
+    },
     BARTH_DEL_ARCHIVE: (req, res) => {
         return res.json(mockjs.mock({
             ..._baseResponse(req),
@@ -229,6 +306,15 @@ const mod = {
             data: {
                 total: '@integer(26, 242)',
                 'content|10-15': [_buildArchive()]
+            }
+        }))
+    },
+    FETCH_TAG_LIST: (req, res) => {
+        return res.json(mockjs.mock({
+            ..._baseResponse(req),
+            data: {
+                total: '@integer(26, 242)',
+                'content|10-15': [_buildTag()]
             }
         }))
     }

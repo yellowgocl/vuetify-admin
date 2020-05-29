@@ -1,0 +1,23 @@
+{
+    "apps": [
+        {
+            "name": "test.zib.wbms.com",
+            "script": "nuxt",
+            "args" : "start",
+            "watch": true,
+            "kill_tiimeout": 5000,
+            "env": {
+                "NODE_ENV": "test"
+            }
+        },
+        {
+            "name": "www.zib.wbms.com",
+            "script": "nuxt",
+            "args" : "start",
+            "watch": false,
+            "env": {
+                "NODE_ENV": "production"
+            }
+        }
+    ]
+}

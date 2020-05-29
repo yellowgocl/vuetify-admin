@@ -6,10 +6,10 @@
           gradient='to top, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)'  height='100vh' width='100vw'></v-img>
       </div>
         <v-row align='center' justify='center'>
-          <v-col cols="12" sm="8" md="4">
+          <v-col cols="10" sm="8" md='6'>
             <v-card active-class='card' raised>
               <v-toolbar color="primary" dark flat >
-                <v-toolbar-title>Sign in</v-toolbar-title>
+                <v-toolbar-title>请登入</v-toolbar-title>
               </v-toolbar>
               <v-spacer></v-spacer>
               <v-card-text>
@@ -20,7 +20,7 @@
                     :rules="nameRules"
                     clearable
                     label="用户名"
-                    prepend-icon='mdi-account'
+                    prepend-icon='person'
                     required
                   ></v-text-field>
                   <v-text-field
@@ -28,8 +28,8 @@
                     :counter="20"
                     :type="showPassword ? 'text' : 'password'"
                     :rules="passwordRules"
-                    prepend-icon='mdi-lock'
-                    :append-icon='showPassword ? "mdi-eye": "mdi-eye-off"'
+                    prepend-icon='lock'
+                    :append-icon='showPassword ? "visibility": "visibility_off"'
                     @click:append='showPassword  = !showPassword'
                     label="密码"
                     clearable
@@ -39,11 +39,15 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn type='submit' form='form' color="primary px-4 mr-2 mb-2">Let's Go~</v-btn>
+                <v-btn :loading='loading' type='submit' form='form' color="primary px-4 mr-2 mb-2">确定</v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
       </v-row>
+      <v-snackbar color='error' v-model="snackbar" >
+            {{ tipsText }}
+            <v-btn color="white" fab large icon @click="snackbar=false" ><v-icon dark>cancel</v-icon></v-btn>
+        </v-snackbar>
     </v-container>
 </template>
 
@@ -52,6 +56,9 @@ export default {
   layout: 'clean',
   data() {
     return {
+      tipsText: '',
+      snackbar: false,
+      loading: false,
       showPassword: false,
       valid: true,
       lazy: false,
@@ -68,15 +75,37 @@ export default {
     }
   },
   mounted() {
+    // this.$api.logout()
   },
   methods: {
     validate () {
+      if (this.loading) {
+        return
+      }
+      this.loading = true
       let flag = this.$refs.form.validate()
       if (flag) {
-        this.$api.post(this.$api.urls.LOGIN, { data: { account: this.name, password: this.password } }).then(res => {
-          this.$storage.setItem('auth', res.authorization)
-          this.$router.replace({ path: '/' })
+        this.$api.login({ data: { account: this.name, password: this.password } }).then(res => {
+          // this.$auth.$storage.setUniversal('auth', res.authorization, false)
+          // this.$storage.setItem('auth', res.authorization)
+          // this.$router.replace({ path: '/' })
+          this.loading = false
+
+        }, rej => {
+          this.loading = false
+          this.snackbar = true
+          this.tipsText = ref.message
+          console.error(rej)
         })
+        // this.$api.post(this.$api.urls.LOGIN, { data: { account: this.name, password: this.password } }).then(res => {
+        //   this.$storage.setItem('auth', res.authorization)
+        //   this.$router.replace({ path: '/' })
+        //   this.loading = false
+        // }, rej => {
+        //   this.loading = false
+        //   this.snackbar = true
+        //   this.tipsText = ref.message
+        // })
       }
     },
   }

@@ -4,7 +4,7 @@ module.exports = {
     // baseURL: env.API_HOST,
     // proxy: !env.IS_PRODUCTION,
     // credentials: true,
-    proxy: !isProduction,
+    proxy: true,
     timeout: 60 * 1000,    
     debug: !isProduction,
 }

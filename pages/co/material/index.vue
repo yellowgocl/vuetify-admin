@@ -21,6 +21,12 @@
                 :loading="loading"
                 :server-items-length="total"
                 class="" >
+                <template v-slot:item.createDate="{ item }">
+                    <span>{{item.createDate|dateFormat}}</span>
+                </template>
+                <template v-slot:item.updateDate="{ item }">
+                    <span>{{(item.updateDate || item.createDate)|dateFormat}}</span>
+                </template>
                 <template v-slot:item.shareCount="{ item }">
                     <v-chip class='share-count-value' :color="getColor(item.shareCount)" dark>{{ item.shareCount }}</v-chip>
                 </template>
@@ -29,8 +35,8 @@
                         <v-progress-circular size='24' indeterminate color="primary"></v-progress-circular>
                     </template>
                     <template v-else>
-                        <nuxt-link :to='`/co/material/${item.id}`'><v-icon small class="mr-2" @click="editItem(item)">edit</v-icon></nuxt-link>
-                        <v-icon small @click="deleteItem(item)">delete</v-icon>
+                        <nuxt-link :to='`/co/material/${item.id}`'><v-icon small class="mx-1">edit</v-icon></nuxt-link>
+                        <v-icon small @click="deleteItem(item)"  class="mx-1">delete</v-icon>
                     </template>
                 </template>
                 <template v-slot:item.status="{item}">
@@ -40,6 +46,8 @@
         </v-card-text>
     </v-card>
     <v-btn
+        nuxt
+        to='/co/material/new'
         color="secondary"
         fixed
         fab
@@ -51,14 +59,21 @@
       >
         <v-icon>add</v-icon>
       </v-btn>
+      <v-snackbar :color='snackbarColor' v-model="snackbar" >
+            {{ tipsText }}
+            <v-btn color="white" fab large icon @click="snackbar=false" ><v-icon dark>cancel</v-icon></v-btn>
+        </v-snackbar>
     </v-container>
 </template>
 
 <script>
-import { unionWith, merge, toNumber, assign, pick, keys, unset } from 'lodash'
+import { unionWith, merge, toNumber, assign, pick, keys, unset, isNaN } from 'lodash'
 export default {
     data() {
         return {
+            snackbarMode: 0,
+            snackbar: false,
+            tipsText: '',
             page: 1,
             total: 0,
             search: '',
@@ -66,8 +81,8 @@ export default {
             options: { page: 1, itemsPerPage: 10 },
             items: [],
             headers: [
-                { text: '创建人', align: 'start', sortable: false, value: 'createBy' },
-                { text: '下载量', align: 'start', sortable: true, value: 'downloadCount' },
+                { text: '分类名', align: 'start', sortable: false, value: 'title' },
+                { text: '创建人', align: 'start', sortable: true, value: 'createBy' },
                 { text: '浏览量', align: 'start', sortable: true, value: 'browseCount' },
                 { text: '累计分享', align: 'start', sortable: true, value: 'shareCount' },
                 { text: '创建日期', align: 'start', sortable: true, value: 'createDate' },
@@ -77,17 +92,27 @@ export default {
             ]
         }
     },
+    filters: {
+        dateFormat: function(v) {
+            return new Date(v).toLocaleDateString()
+        }
+    },
     mounted() {
         let p = toNumber(this.$route.hash.replace('#', ''));
-        this.options.page = p == 0 ? 1 : p
-        this.fetchList({ page: this.options.page })
+        this.options.page = (isNaN(p) || !p) ? 1 : p
+        this.fetchList({ pageNo: this.options.page })
     },
     watch: {
         options: {
             handler(n, o) {
-                this.fetchList({ page: n.page })
+                this.fetchList({ pageNo: n.page })
             },
             deep: true
+        }
+    },
+    computed: {
+        snackbarColor() {
+            return this.snackbarMode == 0 ? 'error' : 'info'
         }
     },
     methods: {
@@ -100,7 +125,7 @@ export default {
                 history.pushState(
                     {},
                     null,
-                    this.$route.path + '#' + encodeURIComponent(params ? params.page : 1)
+                    this.$route.path + '#' + encodeURIComponent(params ? params.pageNo : 1)
                 )
             }, rej => this.loading = false)
         },
@@ -114,13 +139,23 @@ export default {
                 let params = assign({}, item)
                 unset(params, 'loading')
                 item.loading = true
-                this.items = unionWith(this.items, [item])
+                
+                // this.items = unionWith(this.items, [item])
                 let flag = confirm('是否确认移除?')
-                flag && this.$api.delArchive(params).then(res => {
+                flag && this.$api.delArchive(params.id).then(res => {
                     const index = this.items.indexOf(item)
                     this.items.splice(index, 1)
                     item.loading = false
-                    this.items = unionWith(this.items, [item])
+                    this.snackbar = true
+                    this.snackbarMode = 1
+                    this.tipsText = '删除成功.'
+                    // this.items = unionWith(this.items, [item])
+                }, rej => {
+                    item.loading = false
+                    // item.loading = false
+                    this.snackbar = true
+                    this.snackbarMode = 0
+                    this.tipsText = rej.message
                 })
             }
         },

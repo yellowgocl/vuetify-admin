@@ -1,4 +1,5 @@
 const env = require('../env')
+console.info(env)
 module.exports = {
     '/mock/': {
         target: env.MOCK_SERVER || '',

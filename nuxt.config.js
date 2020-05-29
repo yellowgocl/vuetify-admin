@@ -1,5 +1,5 @@
 import colors from 'vuetify/es5/util/colors'
-const { axios, proxy } = require("./config");
+const { axios, proxy, auth } = require("./config");
 const env = require("./env");
 export default {
   mode: 'universal',
@@ -7,6 +7,7 @@ export default {
    ** Headers of the page
    */
   env,
+  auth,
   axios,
   proxy,
   head: {
@@ -51,6 +52,7 @@ export default {
   modules: [
     // Doc: https://axios.nuxtjs.org/usage
     '@nuxtjs/axios',
+    '@nuxtjs/auth',
     // Doc: https://github.com/nuxt-community/dotenv-module
     '@nuxtjs/dotenv'
   ],

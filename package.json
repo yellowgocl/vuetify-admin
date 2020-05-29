@@ -7,12 +7,16 @@
   "scripts": {
     "dev": "nuxt",
     "build": "nuxt build",
+    "build:test": "cross-env NODE_ENV=test nuxt build",
     "start": "nuxt start",
+    "start:test": "cross-env NODE_ENV=test nuxt start",
     "generate": "nuxt generate",
     "mock": "PORT=3722 mocker ./api/mock",
-    "lint": "eslint --ext .js,.vue --ignore-path .gitignore ."
+    "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
+    "pm2:test": "pm2 start pm2.config.json --only test.zib.wbms.com"
   },
   "dependencies": {
+    "@nuxtjs/auth": "^4.9.1",
     "@nuxtjs/axios": "^5.3.6",
     "@nuxtjs/dotenv": "^1.4.0",
     "lodash": "^4.17.15",
@@ -21,16 +25,17 @@
     "urijs": "^1.19.2"
   },
   "devDependencies": {
-    "@nuxtjs/vuetify": "^1.0.0",
     "@nuxtjs/eslint-config": "^2.0.0",
     "@nuxtjs/eslint-module": "^1.0.0",
+    "@nuxtjs/vuetify": "^1.0.0",
     "babel-eslint": "^10.0.1",
+    "cross-env": "^7.0.2",
     "eslint": "^6.1.0",
-    "eslint-plugin-nuxt": ">=0.4.2",
     "eslint-config-prettier": "^6.10.0",
+    "eslint-plugin-nuxt": ">=0.4.2",
     "eslint-plugin-prettier": "^3.1.2",
-    "prettier": "^1.19.1",
     "mocker-api": "^2.0.4",
-    "mockjs": "^1.1.0"
+    "mockjs": "^1.1.0",
+    "prettier": "^1.19.1"
   }
 }

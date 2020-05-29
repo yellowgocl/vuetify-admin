@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-snackbar color='error' v-model="snackbar" >
+        <v-snackbar :color='snackbarColor' v-model="snackbar" >
             {{ tipsText }}
             <v-btn color="white" fab large icon @click="snackbar=false" ><v-icon dark>cancel</v-icon></v-btn>
         </v-snackbar>
@@ -65,7 +65,8 @@
                 </v-btn>
             </v-toolbar>
             <v-card-text>
-            <v-treeview v-if='items && items.length > 0' :open.sync='resouceItems' open-on-click v-model='selection' :selection-type='selectionType' return-object :selectable='selectable' activatable hoverable shaped :items="items">
+            <!--  -->
+            <v-treeview v-if='items && items.length > 0' :open.sync='openItems' open-on-click v-model='selection' :selection-type='selectionType' return-object :selectable='selectable' activatable hoverable shaped :items="items">
                 <template slot="append" slot-scope="{ item }">
                     <v-row>
                         <v-btn @click.stop='openEdit(item, true)' class="mx-2" fab dark small color="info">
@@ -73,6 +74,9 @@
                         </v-btn>
                         <v-btn @click.stop='openEdit(item, false)' class="mx-2" fab dark small color="primary">
                             <v-icon dense small dark>add</v-icon>
+                        </v-btn>
+                        <v-btn @click.stop="deleteCategory(item)" class="mx-2" fab dark small color="error">
+                            <v-icon>delete</v-icon>
                         </v-btn>
                     </v-row>
                 </template>
@@ -90,10 +94,11 @@
 </template>
 
 <script>
-import { map, groupBy, assign } from 'lodash' 
+import { map, groupBy, assign, indexOf, chain, concat } from 'lodash' 
 export default {
     data() {
         return {
+            snackbarMode: 0,
             snackbar: false,
             tipsText: '',
             bannerFile: null,
@@ -107,6 +112,7 @@ export default {
             dialog: false,
             model: true,
             items: [],
+            openItems: [],
             resouceItems: [],
             selectable: false,
             selection: [],
@@ -124,9 +130,15 @@ export default {
                     this.$set(this.editItem, 'icon', res)
                 })
             }
+        },
+        resouceItems(n, o) {
+            this.updateList(n)
         }
     },
     computed: {
+        snackbarColor() {
+            return this.snackbarMode == 0 ? 'error' : 'info'
+        }
     },
     mounted() {
         this.fetchList()
@@ -155,20 +167,33 @@ export default {
             this.dialog = true
             this.$nextTick(() => this.$refs.form.resetValidation())
         },
+        updateList(items) {
+            // items = concat(items, [])
+            this.items = []
+            let temp = chain(items).map(o => {
+                o.parentId = o.parentId || 0
+                return o
+            }).groupBy('parentId')
+            .value()
+            let result = []
+            map(items, (v, k) => {
+                let children = temp[v.id]
+                this.$set(v, 'children', [])
+                if (!!children) {
+                    v.children = children
+                }
+                if (!v.parentId) {
+                    result.push(v)
+                }
+            })
+            this.items = result
+        },
         fetchList() {
             this.items = []
             this.$api.getCategoryList().then(res => {
-                this.resouceItems = res.items
-                let temp = groupBy(res.items, 'parentId')
-                map(res.items, (v, k) => {
-                    let children = temp[v.id]
-                    if (!!children) {
-                        v.children = children
-                    }
-                    if (v.parentId == res.rootId || !v.parentId) {
-                        this.items.push(v)
-                    }
-                })
+                this.resouceItems = res.content
+                this.openItems = concat(this.resouceItems, [])
+                // this.updateList(res.content)
             })
         },
         validate() {
@@ -186,6 +211,23 @@ export default {
             } else {
                 return Promise.reject(flag)
             }
+        },
+        deleteCategory(item) {
+            // this.resouceItems.splice(indexOf(this.resouceItems, item), 1)
+            let flag = confirm('是否确认删除选中分类？')
+
+            flag && this.$api.delCategory(item.id).then(res => {
+                this.tipsText = '删除分类成功'
+                this.snackbarMode = 1
+                this.snackbar = true
+                this.resouceItems.splice(indexOf(this.resouceItems, item), 1)
+                // this.$nextTick(() => this.updateList(this.resouceItems))
+            }, rej => {
+                this.tipsText = rej.messaage
+                this.snackbarMode = 0
+                this.snackbar = true
+                return Promise.reject(rej)
+            })
         }
     }
 }

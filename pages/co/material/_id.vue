@@ -1,24 +1,25 @@
 <template>
-  <v-container class="co-material-id">
+  <v-container class="co-material-id" :class='{"blur": dialog}'>
     <v-toolbar dark class="header-title">
       <v-toolbar-title>编辑素材</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-toolbar-items>
-        <v-btn color="secondary" icon dark>
+      <v-toolbar-items v-if='!dialog'>
+        <v-btn @click.stop='exit(true)' :loading='blockLoading' :disabled='blockLoading' color="secondary" icon dark>
           <v-icon>close</v-icon>
         </v-btn>
-        <v-btn color="primary" icon dark>
+        <v-btn @click.stop='validate' :loading='blockLoading' :disabled='blockLoading' color="primary" icon dark>
           <v-icon>done</v-icon>
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>
-    <v-card class="pt-8">
+    <v-card flat class="pt-8">
       <v-card-text>
         <v-row align="center" no-gutters>
           <v-col>
-            <div class="headline">素材预览</div>
+            <div class="subtitle-1 info--text">素材预览</div>
           </v-col>
           <v-switch
+            v-if='false'
             class="video-mode-switch ma-0 pa-0"
             hide-details
             v-model="isVideoMode"
@@ -38,22 +39,35 @@
             <v-card color="accent" class="pa-1 relative">
               <v-btn
                 @click.stop="deletePic(index)"
-                class="mt-2"
+                class="mt-n4 mr-n6"
                 absolute
                 right
+                color='accent'
                 x-small
                 fab
                 ><v-icon small dense>close</v-icon></v-btn
               >
-              <v-img ripple :height="imageHeight" :src="pic"></v-img>
+              <v-img :lazy-src="pic"
+                  aspect-ratio="1" :src="pic">
+                  <template v-slot:placeholder>
+                    <v-row
+                      class="fill-height ma-0"
+                      align="center"
+                      justify="center"
+                    >
+                      <v-progress-circular indeterminate color="grey dark-2"></v-progress-circular>
+                    </v-row>
+                  </template></v-img>
             </v-card>
           </v-col>
         </v-row>
-        <v-row no-gutters align="center">
+        <v-row no-wrap no-gutters align="center">
           <v-file-input
             class="file-input my-4 mr-4"
-            placeholder="点击上传素材"
+            :placeholder='fileInputRestrict == 0 ? "已达到上传数量限制" : "点击上传素材"'
+            :disabled='fileInputRestrict <= 0'
             :counter="fileInputRestrict"
+            :rules='fileInputRule'
             multiple
             hide-details
             solo-inverted
@@ -68,7 +82,8 @@
               </v-chip>
             </template>
           </v-file-input>
-          <v-chip
+          <v-progress-circular v-if='blockLoading' size='24' indeterminate color="primary"></v-progress-circular>
+          <v-chip v-else
             outlined
             dark
             tile
@@ -79,16 +94,16 @@
         <v-divider></v-divider>
         <v-row no-gutters class="mt-6">
           <v-col cols="12" sm="6" md="8">
-            <div class="headline mb-4 mt-6">信息编辑</div>
+            <div class="subtitle-1 info--text mb-4 mt-4">信息编辑</div>
           </v-col>
           <v-spacer></v-spacer>
-          <v-switch
+          <v-col align-self='end'><v-switch
             :true-value="1"
             :false-value="0"
             v-model="data.status"
             inset
-            :label="`启用状态: ${!!data.status ? '启用' : '禁用'}`"
-          ></v-switch>
+            :label="`状态: ${!!data.status ? '启用' : '禁用'}`"
+          ></v-switch></v-col>
         </v-row>
         <v-form
           @submit.prevent="validate"
@@ -97,19 +112,36 @@
           v-model="valid"
           :lazy-validation="lazy"
         >
+          <v-autocomplete
+            v-model="data.categoryIds"
+            item-text='name'
+            item-value='id'
+            multiple
+            chips
+            :items="categories"
+            label="指定所属分类"
+          ></v-autocomplete>
           <v-text-field
             class="mb-4"
             :rules="nameRules"
             hint="必填"
             :persistent-hint="true"
             v-model="data.title"
-            label="分类名"
+            label="素材名"
           ></v-text-field>
-          <v-select
+          <v-textarea
+            v-model='data.content'
+            label="素材文字内容"
+            auto-grow
+            outlined
+            rows="3"
+            row-height="25"
+          ></v-textarea>
+          <!-- <v-select
             item-text="name"
             item-value="id"
             label="选择所属分类"
-          ></v-select>
+          ></v-select> -->          
           <v-row no-gutters>
             <v-col shrink cols="12" sm="6" md="3"
               ><v-text-field
@@ -146,8 +178,6 @@
             ></v-col>
             <v-col shrink cols="12" sm="6" md="3"
               ><v-text-field
-                readonly
-                hint="只读"
                 :persistent-hint="true"
                 class="mr-0 "
                 type="number"
@@ -156,11 +186,11 @@
               ></v-text-field
             ></v-col>
           </v-row>
-          <div class="headline mb-4 mt-8">标签管理</div>
+          <div class="subtitle-1 info--text mb-4 mt-8">标签管理</div>
           <div>
             <v-chip
               v-for="(tag, index) in data.tags"
-              :key="tag"
+              :key="tag.value"
               class="ma-2"
               close
               color="teal"
@@ -170,33 +200,97 @@
             >
               {{ tag }}
             </v-chip>
-            <v-chip class="ma-2" color="accent" text-color="white">
+            <v-chip ripple @click.stop='dialog = true' class="ma-2" color="accent" text-color="white">
               <v-avatar left>
                 <v-icon>add</v-icon>
               </v-avatar>
-              加一个标签
+                添加标签
             </v-chip>
           </div>
         </v-form>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="secondary" x-large text
+        <v-btn @click.stop='exit(true)' :loading='blockLoading' :disabled='blockLoading' color="secondary" x-large text
           >&nbsp;&nbsp;取消编辑&nbsp;&nbsp;</v-btn
         >
-        <v-btn color="primary mx-4" x-large
+        <v-btn @click.stop='validate' :loading='blockLoading' :disabled='blockLoading' color="primary mx-4" x-large
           >&nbsp;&nbsp;&nbsp;&nbsp;确定保存&nbsp;&nbsp;&nbsp;&nbsp;</v-btn
         >
       </v-card-actions>
     </v-card>
+    <v-dialog :persistent='submitTagLoading' :fullscreen="$vuetify.breakpoint.xsOnly" v-model='dialog' width="80%" transition='dialog-transition'>
+        <v-card class='pb-6'>
+            <v-toolbar
+                class='dialog-title'
+                dark
+                color="primary">
+                <v-toolbar-title>选取标签</v-toolbar-title>
+                <v-btn icon>
+                <v-icon>mdi-dots-vertical</v-icon>
+                </v-btn>
+            </v-toolbar>
+            <v-card-text class='mt-4'>
+                <v-row >
+                    <v-col cols=12 sm='8'>
+                      <v-form @submit.prevent="submitTag" id="tagForm" ref="tagForm" >
+                          <v-text-field
+                              hide-details
+                              :disabled='submitTagLoading' :loading='submitTagLoading'
+                              class="mb-1"
+                              v-model="tagValue"
+                              label="填写分类"
+                          ></v-text-field>
+                      </v-form>
+                    </v-col>
+                    <v-col align-self='end' cols=12 sm='4'>
+                      <v-btn color='info' block outlined @click.stop='submitTag' :disabled='submitTagLoading' :loading='submitTagLoading'>添加</v-btn>
+                    </v-col>
+                </v-row>
+                
+            </v-card-text>
+            <v-card-text>
+                <div class="subtitle-1 mb-2">已选择</div>
+                <v-card  min-height='5rem' color='accent'  class="pa-4">
+                    <v-chip @click:close='deleteSelectedTag(tag, index)' close color='primary' class='ma-2' v-for="(tag, index) in selectTags" :key="tag.value">{{tag.value}}</v-chip>
+                </v-card>
+                <div class="subtitle-1 mt-6">热门标签</div>
+                <v-card min-height='5rem' color='accent' class="pa-4">
+                    <v-chip @click.stop='addToSelectedTag(tag, index)' ripple class='ma-2' color='info' v-for="(tag, index) in displayTags" :key="tag.value">{{tag.value}}</v-chip>
+                </v-card>
+            </v-card-text>
+            <v-divider class='my-6'></v-divider>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                  <v-btn :disabled='submitTagLoading' :loading='submitTagLoading' @click.stop='cancelSelectTag' color="secondary" x-large text
+                    >&nbsp;&nbsp;取消&nbsp;&nbsp;</v-btn>
+                    <v-btn :disabled='submitTagLoading' :loading='submitTagLoading' @click.stop='confirmSelectTag' color="primary mx-4" x-large
+                    >&nbsp;&nbsp;&nbsp;&nbsp;确定&nbsp;&nbsp;&nbsp;&nbsp;</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+    <v-snackbar color='error' v-model="snackbar" >
+            {{ tipsText }}
+            <v-btn color="white" fab large icon @click="snackbar=false" ><v-icon dark>cancel</v-icon></v-btn>
+        </v-snackbar>
   </v-container>
 </template>
 
 <script>
-import { map, concat } from 'lodash'
+import { map, concat, find, take, remove, union } from 'lodash'
 export default {
   data() {
     return {
+      submitTagLoading: false,
+      categories: [],
+      tipsText: '',
+      snackbar: false,
+        tagValue: '',
+        selectTags: [],
+        tags:[],
+        displayTags: [],
+        dialog: false,
+        blockLoading: false,
       isVideoMode: false,
       nameRules: [
         v => !!v || "分类名不能为空",
@@ -205,24 +299,33 @@ export default {
       valid: false,
       lazy: false,
       data: {},
-      bannerFile: []
+      bannerFile: [],
     };
   },
   computed: {
-    imageHeight() {
-      switch (this.$vuetify.breakpoint.name) {
-        case "xs":
-          return "6rem";
-        case "sm":
-          return "8rem";
-        case "md":
-          return "8rem";
-        case "lg":
-          return "9rem";
-      }
+    // imageHeight() {
+    //   switch (this.$vuetify.breakpoint.name) {
+    //     case "xs":
+    //       return "6rem";
+    //     case "sm":
+    //       return "8rem";
+    //     case "md":
+    //       return "8rem";
+    //     case "lg":
+    //       return "9rem";
+    //   }
+    // },
+    isEdit() {
+      return !!this.$route.params.id
+    },
+    fileInputRule(){ 
+        return [
+          v => v.length < this.fileInputRestrict,
+          //value => !value.length || value.reduce((size, file) => size + file.size, 0) < 2000000 || 'Avatar size should be less than 2 MB!',
+        ]
     },
     fileInputRestrict() {
-      let len = !!this.data && !!this.data.pics ? this.data.pics.length : 9;
+      let len = !!this.data && !!this.data.pics ? this.data.pics.length : 0;
       return this.isVideoMode ? 1 : 9 - len;
     }
   },
@@ -233,11 +336,24 @@ export default {
   },
   watch: {
     bannerFile(n, o) {
-      if (!!n) {
-        this.$api.fileUpload(n).then(res => {
-          this.data.pics = concat(this.data.pics, res)
-          consoled.info(res)
-        });
+      if (!!n && n.length > 0) {
+          if (n.length <= this.fileInputRestrict) {
+            this.blockLoading = true
+            this.$api.fileUpload(n).then(res => {
+                this.data.pics = concat(this.data.pics||[], res)
+                this.blockLoading = false
+                this.bannerFile = []
+            }, rej => {
+                this.bannerFile = []
+                this.blockLoading = false
+                this.snackbar = true
+                this.tipsText = rej.message
+            });
+        } else {
+            alert(`可上传文件数是${this.fileInputRestrict}个，您当前选择了${n.length}个`)
+            this.bannerFile = []
+            this.blockLoading = false
+        }
       }
     }
   },
@@ -246,8 +362,18 @@ export default {
       if (!!id) {
         this.$api.getArchive(id).then(res => {
           this.data = res;
+          this.$api.archiveGetCategory(id).then(res => {
+            this.$set(this.data, 'categoryIds', map(res, (n) => n.id))
+          })
         });
       }
+      this.$api.fetchTagList().then(res => {
+          this.tags = res.content
+          this.displayTags = take(this.tags, 10)
+      })
+      this.$api.getCategoryList().then(res => {
+        this.categories = res.content
+      })
     },
     onUpload(index) {
       let fileInput = this.$refs["file-input" + index];
@@ -255,22 +381,99 @@ export default {
     },
     deleteTag(index) {
       let flag = confirm("是否确认删除标签?");
-      this.data.tags.splice(index, 1);
+      flag && this.data.tags.splice(index, 1);
     },
     deletePic(index) {
       let flag = confirm("是否确认删除图片?");
-      this.data.pics.splice(index, 1);
+      flag && this.data.pics.splice(index, 1);
+      this.$set(this.data, 'pics', this.data.pics)
+    },
+    exit(isCancel = false) {
+      if (isCancel) {
+        let msg = `是否不保存退出编辑？`
+        let flag = confirm(msg)
+        flag && this.$router.go(-1)
+      } else {
+        let msg = `${this.isEdit ? "修改" : "添加"}成功，点击确定返回列表`
+        alert(msg)
+        this.$router.go(-1)
+      }
+      
+    },
+    validate() {
+        let flag = this.$refs.form.validate()
+        if (flag) {
+            let req = this.isEdit ? this.$api.modArchive : this.$api.addArchive
+                // this.editItem.mockStatusCode = 400
+                return req.call(this, this.data).then(res => {
+                    this.exit(false)
+                    return res
+                }, rej => {
+                    this.snackbar = true;
+                    this.tipsText = rej.message
+                    return Promise.reject(rej)
+                })
+        } else {
+            return Promise.reject(flag)
+        }
+    },
+    submitTag() {
+        if(!this.tagValue || this.tagValue.length == 0) {
+          return;
+        }
+        let temp = find(this.tags, (n) => n.value == this.tagValue);
+        if (!temp) {
+          this.submitTagLoading = true
+            this.$api.addTag(this.tagValue).then(res => {
+                this.tags.unshift(res)
+                this.selectTags.unshift(res)
+                this.submitTagLoading = false
+            }, rej => {
+              this.submitTagLoading = false
+              this.snackbar = true
+              this.tipsText = rej.message
+            })
+        } else {
+            let stemp = find(this.selectTags, (n) => n.value == this.tagValue)
+            if (!stemp) {
+              this.selectTags.unshift(temp)
+              remove(this.displayTags, temp)
+            }
+        }
+        this.tagValue = ''
+    },
+    addToSelectedTag(item, index) {
+        this.selectTags.push(item)
+        this.displayTags.splice(index, 1)
+    },
+    deleteSelectedTag(item, index) {
+        this.displayTags.push(item)
+        this.selectTags.splice(index, 1)
+    },
+    cancelSelectTag() {
+        this.dialog = false;
+        this.selectTags = []
+    },
+    confirmSelectTag() {
+      this.dialog = false;
+      let temp = map(this.selectTags, (n) => n.value)
+      this.selectTags = []
+      this.data.tags = union(this.data.tags, temp)
     }
   }
 };
 </script>
 
 <style scoped>
-/* .co-material-id /deep/ .header-title {
+.co-material-id.blur {
+  filter: blur(10px);
+  transition: all .3s;
+}
+.co-material-id /deep/ .dialog-title {
     position: sticky;
     top: 0;
     z-index: 5;
-} */
+}
 .file-input {
   bottom: 0;
   left: 0;
