@@ -36,7 +36,7 @@ export default {
    ** Plugins to load before mounting the App
    */
   plugins: [
-    '~/plugins/app', '~/plugins/axios'
+    '~/plugins/app', '~/plugins/axios', { src: '~/plugins/vconsole.js', ssr: false }
   ],
   /*
    ** Nuxt.js dev-modules

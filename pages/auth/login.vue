@@ -76,6 +76,7 @@ export default {
   },
   mounted() {
     // this.$api.logout()
+    console.info(this.$auth.$storage.getLocalStorage('redirectUrl'))
   },
   methods: {
     validate () {
@@ -88,13 +89,15 @@ export default {
         this.$api.login({ data: { account: this.name, password: this.password } }).then(res => {
           // this.$auth.$storage.setUniversal('auth', res.authorization, false)
           // this.$storage.setItem('auth', res.authorization)
-          // this.$router.replace({ path: '/' })
+          let redirectUrl = this.$auth.$storage.getUniversal('redirectUrl') || '/'
+          this.$router.replace({ path: redirectUrl })
+          this.$auth.$storage.setUniversal('redirectUrl', null)
           this.loading = false
 
         }, rej => {
           this.loading = false
           this.snackbar = true
-          this.tipsText = ref.message
+          this.tipsText = rej.message
           console.error(rej)
         })
         // this.$api.post(this.$api.urls.LOGIN, { data: { account: this.name, password: this.password } }).then(res => {

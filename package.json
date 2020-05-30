@@ -13,7 +13,7 @@
     "generate": "nuxt generate",
     "mock": "PORT=3722 mocker ./api/mock",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
-    "pm2:test": "pm2 start pm2.config.json --only test.zib.wbms.com"
+    "pm2:test": "cross-env NODE_ENV=test pm2 start pm2.config.json --only test.zib.wbms.com"
   },
   "dependencies": {
     "@nuxtjs/auth": "^4.9.1",
@@ -22,7 +22,8 @@
     "lodash": "^4.17.15",
     "nuxt": "^2.0.0",
     "qs": "^6.9.4",
-    "urijs": "^1.19.2"
+    "urijs": "^1.19.2",
+    "vconsole": "^3.3.4"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config": "^2.0.0",

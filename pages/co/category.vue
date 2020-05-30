@@ -29,8 +29,8 @@
                         <v-col align-self='end' cols="12" sm="7">
                             <v-card-title>{{editItem.name}}</v-card-title>
                             <v-card-text>
-                                <p class='grey--text'>最近一次更新:{{editItem.updateDate}}</p>
-                                <p class='grey--text mb-0'>最近更新自: <strong class='info--text text--darken-0 font-weight-bold'>{{editItem.updateBy}}</strong></p>
+                                <div class='grey--text'>最近一次更新:{{editItem.updateDate}}</div>
+                                <div class='grey--text mb-0'>最近更新自: <strong class='info--text text--darken-0 font-weight-bold'>{{editItem.updateBy}}</strong></div>
                             </v-card-text>
                             <v-file-input 
                                 v-model="bannerFile" 
@@ -94,7 +94,7 @@
 </template>
 
 <script>
-import { map, groupBy, assign, indexOf, chain, concat } from 'lodash' 
+import { map, groupBy, assign, indexOf, chain, concat, omit } from 'lodash' 
 export default {
     data() {
         return {
@@ -171,7 +171,7 @@ export default {
             // items = concat(items, [])
             this.items = []
             let temp = chain(items).map(o => {
-                o.parentId = o.parentId || 0
+                o.parentId = o.parentId || null
                 return o
             }).groupBy('parentId')
             .value()
@@ -201,6 +201,7 @@ export default {
             if (flag) {
                 let req = this.isEdit ? this.$api.modCategory : this.$api.addCategory 
                 // this.editItem.mockStatusCode = 400
+                this.editItem = omit(this.editItem, ['children'])
                 return req.call(this, this.editItem).then(res => {
                     return res
                 }, rej => {
@@ -215,7 +216,6 @@ export default {
         deleteCategory(item) {
             // this.resouceItems.splice(indexOf(this.resouceItems, item), 1)
             let flag = confirm('是否确认删除选中分类？')
-
             flag && this.$api.delCategory(item.id).then(res => {
                 this.tipsText = '删除分类成功'
                 this.snackbarMode = 1

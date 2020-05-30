@@ -7,12 +7,12 @@
         <v-btn @click.stop='exit(true)' :loading='blockLoading' :disabled='blockLoading' color="secondary" icon dark>
           <v-icon>close</v-icon>
         </v-btn>
-        <v-btn @click.stop='validate' :loading='blockLoading' :disabled='blockLoading' color="primary" icon dark>
+        <v-btn @click.stop='validate' :loading='blockLoading' :disabled='blockLoading || !hasModify' color="primary" icon dark>
           <v-icon>done</v-icon>
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>
-    <v-card flat class="pt-8">
+    <v-card flat class="py-6">
       <v-card-text>
         <v-row align="center" no-gutters>
           <v-col>
@@ -135,6 +135,7 @@
             auto-grow
             outlined
             rows="3"
+            :rules='[v => !!v || "内容不能为空"]'
             row-height="25"
           ></v-textarea>
           <!-- <v-select
@@ -214,9 +215,9 @@
         <v-btn @click.stop='exit(true)' :loading='blockLoading' :disabled='blockLoading' color="secondary" x-large text
           >&nbsp;&nbsp;取消编辑&nbsp;&nbsp;</v-btn
         >
-        <v-btn @click.stop='validate' :loading='blockLoading' :disabled='blockLoading' color="primary mx-4" x-large
+        <div ><v-btn class='mx-4' @click.stop='validate' :loading='blockLoading' :disabled='blockLoading || !hasModify' color="primary" x-large
           >&nbsp;&nbsp;&nbsp;&nbsp;确定保存&nbsp;&nbsp;&nbsp;&nbsp;</v-btn
-        >
+        ></div>
       </v-card-actions>
     </v-card>
     <v-dialog :persistent='submitTagLoading' :fullscreen="$vuetify.breakpoint.xsOnly" v-model='dialog' width="80%" transition='dialog-transition'>
@@ -277,10 +278,11 @@
 </template>
 
 <script>
-import { map, concat, find, take, remove, union } from 'lodash'
+import { map, concat, find, take, remove, union, isEqual } from 'lodash'
 export default {
   data() {
     return {
+      reference: {},
       submitTagLoading: false,
       categories: [],
       tipsText: '',
@@ -300,6 +302,7 @@ export default {
       lazy: false,
       data: {},
       bannerFile: [],
+      hasModify: false,
     };
   },
   computed: {
@@ -335,6 +338,13 @@ export default {
     this.fetchData(id);
   },
   watch: {
+    data: {
+      handler(n, o) {
+        this.hasModify = !isEqual(this.reference, n)
+        // this.reference = Object.assign({}, this.reference)
+      },
+      deep: true
+    },
     bannerFile(n, o) {
       if (!!n && n.length > 0) {
           if (n.length <= this.fileInputRestrict) {
@@ -360,11 +370,20 @@ export default {
   methods: {
     fetchData(id) {
       if (!!id) {
+        this.blockLoading = true
         this.$api.getArchive(id).then(res => {
+          this.blockLoading = false
           this.data = res;
           this.$api.archiveGetCategory(id).then(res => {
             this.$set(this.data, 'categoryIds', map(res, (n) => n.id))
+            this.reference = Object.assign({}, this.data)
           })
+        }, rej => {
+          if (rej.code == 404) {
+            alert(rej.message)
+            let redirectUrl = '/'
+            this.$router.replace({ path: redirectUrl })
+          }
         });
       }
       this.$api.fetchTagList().then(res => {

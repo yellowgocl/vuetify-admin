@@ -196,7 +196,7 @@ const login = (params) => {
 const logout = () => {
     return authModule.logout().then(res => {
         // authModule.$storage.removeUniversal('auth')
-        console.info(res)
+        // console.info(res)
         return res
     })
 }

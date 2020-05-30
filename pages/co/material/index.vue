@@ -14,6 +14,7 @@
         </v-card-title>
         <v-card-text>
             <v-data-table
+                v-if='items && items.length > 0'
                 :search="search"
                 :headers="headers"
                 :items="items"
@@ -27,6 +28,9 @@
                 <template v-slot:item.updateDate="{ item }">
                     <span>{{(item.updateDate || item.createDate)|dateFormat}}</span>
                 </template>
+                <template v-slot:item.createBy="{ item }">
+                    <span>{{item.createSysUser ? item.createSysUser.name : item.createBy}}</span>
+                </template>
                 <template v-slot:item.shareCount="{ item }">
                     <v-chip class='share-count-value' :color="getColor(item.shareCount)" dark>{{ item.shareCount }}</v-chip>
                 </template>
@@ -35,8 +39,8 @@
                         <v-progress-circular size='24' indeterminate color="primary"></v-progress-circular>
                     </template>
                     <template v-else>
-                        <nuxt-link :to='`/co/material/${item.id}`'><v-icon small class="mx-1">edit</v-icon></nuxt-link>
-                        <v-icon small @click="deleteItem(item)"  class="mx-1">delete</v-icon>
+                        <nuxt-link :to='`/co/material/${item.id}`'><v-icon :small='!$vuetify.breakpoint.xsOnly' class="mx-1">edit</v-icon></nuxt-link>
+                        <v-icon :small='!$vuetify.breakpoint.xsOnly' @click="deleteItem(item)"  class="mx-1">delete</v-icon>
                     </template>
                 </template>
                 <template v-slot:item.status="{item}">

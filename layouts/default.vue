@@ -69,7 +69,7 @@
         </template>
       </v-list></v-col>
       
-      <v-col @click.stop='logout' class='align-self-end flex-grow-0 flex-shrink-0'><v-btn color='secondary' tile x-large block>登出</v-btn></v-col>
+      <v-col @click.stop='logout' class='align-self-end flex-grow-0 flex-shrink-0'><v-btn color='secondary' tile x-large text block>登出</v-btn></v-col>
       </v-container>
       <!-- <v-spacer></v-spacer>
       <v-btn >登出</v-btn> -->

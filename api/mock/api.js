@@ -188,6 +188,12 @@ const mod = {
             }
         })
     },
+    LOGOUT: (req, res) => {
+        return res.json({
+            ..._baseResponse(req),
+            "data": true
+        })
+    },
     IS_SIGN_IN: (req, res) => {
         let flag = !!(req.query.flag || req.params.flag || req.body.flag || 0)
         return res.json({

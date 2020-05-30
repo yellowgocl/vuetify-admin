@@ -1,6 +1,6 @@
 <template>
   <v-layout column justify-center align-center>
-    <p class='display-1 mt-6'>Welcome</p>
+    <div class='display-1 mt-6'>Welcome</div>
     
   </v-layout>
 </template>
