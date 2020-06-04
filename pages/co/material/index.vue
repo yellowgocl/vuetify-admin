@@ -48,7 +48,7 @@
                     <v-switch :disabled='item.loading' @change='onEnabled(item)' :true-value='1' :false-value='0' v-model="item.status" inset :label="`${!!item.status ? '启用' : '禁用'}`"></v-switch>
                 </template>
             </v-data-table>
-            <v-row align=‘stretch’><v-spacer></v-spacer><v-col style='flex-grow: 0'><v-pagination @input='onChangePagination' v-model="page" :length="parseInt(total/5)"></v-pagination></v-col></v-row>
+            <v-row align=‘stretch’><v-spacer></v-spacer><v-col style='flex-grow: 0'><v-pagination @input='onChangePagination' v-model="page" :length="paginationCount"></v-pagination></v-col></v-row>
         </v-card-text>
     </v-card>
     <v-btn
@@ -110,16 +110,19 @@ export default {
         this.fetchList({ pageNo: this.options.page })
     },
     watch: {
-        options: {
-            handler(n, o) {
-                this.fetchList({ pageNo: n.page })
-            },
-            deep: true
-        }
+        // options: {
+        //     handler(n, o) {
+        //         this.fetchList({ pageNo: n.page })
+        //     },
+        //     deep: true
+        // }
     },
     computed: {
         snackbarColor() {
             return this.snackbarMode == 0 ? 'error' : 'info'
+        },
+        paginationCount() {
+            return Math.ceil((this.total/this.options.itemsPerPage))
         }
     },
     methods: {
