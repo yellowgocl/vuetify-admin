@@ -9,7 +9,7 @@ export default ({$axios, redirect, app }) => {
         }
     })
     $axios.onError(error => {
-        if (!error.response || error.response.status == 500) {
+        if (error.response && error.response.status == 500) {
             redirect('/error')
         }
        //  return error

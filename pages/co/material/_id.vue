@@ -4,12 +4,19 @@
       <v-toolbar-title>编辑素材</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items v-if='!dialog'>
-        <v-btn @click.stop='exit(true)' :loading='blockLoading' :disabled='blockLoading' color="secondary" icon dark>
+        <v-switch
+            class="video-mode-switch ma-0 pa-0"
+            hide-details
+            v-model="isVideoMode"
+            inset
+            :label="`${isVideoMode ? '视频模式' : '图片模式'}`"
+          ></v-switch>
+        <!-- <v-btn @click.stop='exit(true)' :loading='blockLoading' :disabled='blockLoading' color="secondary" icon dark>
           <v-icon>close</v-icon>
         </v-btn>
         <v-btn @click.stop='validate' :loading='blockLoading' :disabled='blockLoading || !hasModify' color="primary" icon dark>
           <v-icon>done</v-icon>
-        </v-btn>
+        </v-btn> -->
       </v-toolbar-items>
     </v-toolbar>
     <v-card flat class="py-6">
@@ -18,16 +25,18 @@
           <v-col>
             <div class="subtitle-1 info--text">素材预览</div>
           </v-col>
-          <v-switch
-            v-if='false'
+          <!-- <v-switch
             class="video-mode-switch ma-0 pa-0"
             hide-details
             v-model="isVideoMode"
             inset
             :label="`${isVideoMode ? '视频模式' : '图片模式'}`"
-          ></v-switch>
+          ></v-switch> -->
+          <v-btn @click.stop='dragMode = !dragMode' v-if='!isVideoMode' color='secondary' :outlined='!dragMode' small>{{dragMode?"完成编辑":"编辑排序"}}</v-btn>
         </v-row>
-        <v-row class="mb-1 mt-4">
+        
+        <v-row class="mb-1 mt-4" ref='mediaContainer'>
+          <template v-if='!isVideoMode'>
           <v-col
             cols="6"
             sm="3"
@@ -36,7 +45,7 @@
             v-for="(pic, index) in data.pics"
             :key="pic"
           >
-            <v-card color="accent" class="pa-1 relative">
+            <v-card color="accent" class="pa-1 relative ">
               <v-btn
                 @click.stop="deletePic(index)"
                 class="mt-n4 mr-n6"
@@ -47,7 +56,9 @@
                 fab
                 ><v-icon small dense>close</v-icon></v-btn
               >
-              <v-img :lazy-src="pic"
+              <v-img 
+                  :class='{ "drag-mode": dragMode }'
+                  :lazy-src='pic'
                   aspect-ratio="1" :src="pic">
                   <template v-slot:placeholder>
                     <v-row
@@ -60,12 +71,36 @@
                   </template></v-img>
             </v-card>
           </v-col>
+          </template>
+          <template v-else>
+            <v-col cols=12>
+              <v-card color="accent" class="pa-1 relative" v-for='item in data.videos' :key='item'>
+              <v-btn
+                @click.stop="deletePic(index)"
+                class="mt-4 mr-1"
+                absolute
+                right
+                color='accent'
+                x-small
+                fab
+                ><v-icon small dense>close</v-icon></v-btn
+              >
+              <video-player
+                 class="video-player-box"
+                 ref="videoPlayer"
+                 :options="playerOptions"
+                 :playsinline="true">
+              </video-player>
+              </v-card>
+            </v-col>
+          </template>
         </v-row>
-        <v-row no-wrap no-gutters align="center">
+        <v-row class='flex-nowrap  my-4' no-gutters align="center">
           <v-file-input
-            class="file-input my-4 mr-4"
+            v-if='!uploading'
+            class="file-input mr-4"
             :placeholder='fileInputRestrict == 0 ? "已达到上传数量限制" : "点击上传素材"'
-            :disabled='fileInputRestrict <= 0'
+            :disabled='blockLoading || fileInputRestrict <= 0'
             :counter="fileInputRestrict"
             :rules='fileInputRule'
             multiple
@@ -74,7 +109,7 @@
             rounded
             v-model="bannerFile"
             prepend-icon="insert_photo"
-            accept="image/*"
+            :accept="fileAccept"
           >
             <template v-slot:selection="{ text }">
               <v-chip small label color="primary">
@@ -82,13 +117,22 @@
               </v-chip>
             </template>
           </v-file-input>
-          <v-progress-circular v-if='blockLoading' size='24' indeterminate color="primary"></v-progress-circular>
+          <v-progress-linear
+              class='mr-4'
+              v-else
+              v-model="uploadProgress"
+              color="info"
+              height='3rem'
+              rounded
+            ></v-progress-linear>
+          <!-- <v-progress-circular v-if='blockLoading' size='24' indeterminate color="primary"></v-progress-circular> -->
+          <v-btn v-if='uploading' @click.stop='onCancelUpload' fab small text color='secondary'><v-icon dense>cancel</v-icon></v-btn>
           <v-chip v-else
             outlined
             dark
             tile
             :color="fileInputRestrict == 0 ? 'pink' : 'info'"
-            >{{ fileInputRestrict }}/9</v-chip
+            >{{ fileInputRestrict }}/{{isVideoMode ? 1 : 9}}</v-chip
           >
         </v-row>
         <v-divider></v-divider>
@@ -134,8 +178,9 @@
             label="素材文字内容"
             auto-grow
             outlined
+            counter
             rows="3"
-            :rules='[v => !!v || "内容不能为空"]'
+            :rules='[v => !!v || "不能为空", v => (v && v.length <= 1500) || "长度不能超过1500个字符"]'
             row-height="25"
           ></v-textarea>
           <!-- <v-select
@@ -278,10 +323,21 @@
 </template>
 
 <script>
-import { map, concat, find, take, remove, union, isEqual } from 'lodash'
+import { map, concat, find, take, remove, union, isEqual, assign, cloneDeep, reduce, first } from 'lodash'
+import { Utils } from '~/common'
+import Sortable from 'sortablejs'
+import { setTimeout } from 'timers';
 export default {
   data() {
     return {
+      playerOptions: {
+        fluid: true,  muted: true, language: 'zh-CN',
+      },
+      gridWidth: 0,
+      uploading: false,
+      uploadProgress: 0,
+      uploadCancelToken: null,
+      videoSrc: '',
       reference: {},
       submitTagLoading: false,
       categories: [],
@@ -303,6 +359,8 @@ export default {
       data: {},
       bannerFile: [],
       hasModify: false,
+      sortable: null,
+      dragMode: false,
     };
   },
   computed: {
@@ -327,8 +385,12 @@ export default {
           //value => !value.length || value.reduce((size, file) => size + file.size, 0) < 2000000 || 'Avatar size should be less than 2 MB!',
         ]
     },
+    fileAccept() {
+      return this.isVideoMode ? 'video/*' : 'image/*'
+    },
     fileInputRestrict() {
-      let len = !!this.data && !!this.data.pics ? this.data.pics.length : 0;
+      let arr = this.isVideoMode ? this.data.videos || [] : this.data.pics || []
+      let len = arr.length || 0;
       return this.isVideoMode ? 1 : 9 - len;
     }
   },
@@ -336,8 +398,24 @@ export default {
     // console.info(this.$route)
     let id = this.$route.params.id;
     this.fetchData(id);
+    this.sortable = Sortable.create(this.$refs.mediaContainer, {
+        animation: 100,  
+        disabled: true,
+        supportPointer: true,
+        onEnd: ({newIndex, oldIndex, oldDraggableIndex, newDraggableIndex}) => {
+          [this.data.pics[oldIndex], this.data.pics[newIndex]] = [this.data.pics[newIndex], this.data.pics[oldIndex]]
+          // console.info([...this.data.pics])
+          // this.$set(this.data, 'pics', [])
+          setTimeout(() =>this.$set(this.data, 'pics', [...this.data.pics]),1000)
+          // this.data.pics.splice(newIndex, 0, this.data.pics.splice(oldIndex, 1)[0]);
+        }
+      })
   },
   watch: {
+    dragMode(n, o) {
+      this.sortable.disabled = !n
+      this.sortable.option('disabled', !n)
+    },
     data: {
       handler(n, o) {
         this.hasModify = !isEqual(this.reference, n)
@@ -348,16 +426,35 @@ export default {
     bannerFile(n, o) {
       if (!!n && n.length > 0) {
           if (n.length <= this.fileInputRestrict) {
-            this.blockLoading = true
-            this.$api.fileUpload(n).then(res => {
-                this.data.pics = concat(this.data.pics||[], res)
-                this.blockLoading = false
+            this.blockLoading = this.uploading = true
+            // if (this.isVideoMode) {
+            //   let localUrl = (URL.createObjectURL(n[0]))
+            //   // this.$set(this.playerOptions, 'sources', [{ type: n[0].type, src: localUrl }])
+            //   // this.playerOptions.sources=[{ src: URL.createObjectURL(n[0]) }]
+            // }
+            this.$api.fileUpload(n, this.onUploadProgressHandle.bind(this)).then(res => {
+                if (!this.isVideoMode) {
+                  this.$set(this.data, 'pics', concat(this.data.pics||[], res))
+                } else {
+                  this.$set(this.data, 'videos', concat([], res))
+                  let sources = reduce(this.data.videos, (r, v, k) => {
+                    r[k] = Utils.formatVideoResource(v)
+                    return r
+                  }, [])
+                  this.$nextTick(() => this.$set(this.playerOptions, 'sources', sources[0]))
+                }
+                this.uploadProgress = 0
+                this.blockLoading = this.uploading = false
                 this.bannerFile = []
+                this.uploadCancelToken = null
             }, rej => {
+                // this.$set(this.playerOptions, 'sources', map(this.data.videos, (o) => { src: o }))
+                this.uploadProgress = 0
                 this.bannerFile = []
-                this.blockLoading = false
+                this.blockLoading = this.uploading = false
                 this.snackbar = true
                 this.tipsText = rej.message
+                this.uploadCancelToken = null
             });
         } else {
             alert(`可上传文件数是${this.fileInputRestrict}个，您当前选择了${n.length}个`)
@@ -368,15 +465,43 @@ export default {
     }
   },
   methods: {
+    onUploadProgressHandle(progressEvent, cancelToken) {
+      this.uploadCancelToken = cancelToken
+      let { loaded, total } = progressEvent
+      this.uploadProgress = Math.ceil(loaded / total * 100)
+
+    },
+    onCancelUpload() {
+      if (this.uploadCancelToken) {
+        this.uploading = false
+        this.uploadProgress = 0
+        this.uploadCancelToken.cancel({message: '用户取消上传.', code: 600})
+        this.uploadCancelToken = null
+        this.blockLoading = false
+        this.bannerFile = []
+      }
+    },
     fetchData(id) {
       if (!!id) {
         this.blockLoading = true
         this.$api.getArchive(id).then(res => {
           this.blockLoading = false
           this.data = res;
+          this.$nextTick(() => {
+            this.reference = cloneDeep(this.data)
+          })
+          this.isVideoMode = res.videos && res.videos.length > 0
+          let sources = reduce(res.videos, (r, v, k) => {
+            r[k] = Utils.formatVideoResource(v)
+            return r
+          }, [])
+          this.$set(this.playerOptions, 'sources', sources[0])
           this.$api.archiveGetCategory(id).then(res => {
-            this.$set(this.data, 'categoryIds', map(res, (n) => n.id))
-            this.reference = Object.assign({}, this.data)
+            let temp = assign({}, this.data)
+            temp.categoryIds = map(res, (n) => n.id)
+            // this.$set(this.data, 'categoryIds', map(res, (n) => n.id))
+            this.reference = cloneDeep(temp)
+            this.$nextTick(() => this.$set(this.data, 'categoryIds', temp.categoryIds.concat()))
           })
         }, rej => {
           if (rej.code == 404) {
@@ -385,6 +510,9 @@ export default {
             this.$router.replace({ path: redirectUrl })
           }
         });
+      } else {
+        this.data = { videos: [], pics: [], content: '', tags: [], title: '', categoryIds: [] }
+        this.reference = Object.assign({}, this.data)
       }
       this.$api.fetchTagList().then(res => {
           this.tags = res.content
@@ -403,9 +531,10 @@ export default {
       flag && this.data.tags.splice(index, 1);
     },
     deletePic(index) {
-      let flag = confirm("是否确认删除图片?");
-      flag && this.data.pics.splice(index, 1);
-      this.$set(this.data, 'pics', this.data.pics)
+      let flag = confirm(`是否确认删除${this.isVideoMode ? "视频" : "图片"}?`);
+      let arr = this.isVideoMode ? this.data.videos : this.data.pics
+      flag && arr.splice(index, 1);
+      // this.$set(this.data, this.isVideoMode ? 'videos' : 'pics', arr.concat())
     },
     exit(isCancel = false) {
       if (isCancel) {
@@ -477,7 +606,8 @@ export default {
       this.dialog = false;
       let temp = map(this.selectTags, (n) => n.value)
       this.selectTags = []
-      this.data.tags = union(this.data.tags, temp)
+      // this.data.tags = union(this.data.tags, temp)
+      this.$set(this.data, 'tags', union(this.data.tags, temp))
     }
   }
 };
@@ -500,4 +630,22 @@ export default {
 .video-mode-switch {
   align-items: center;
 }
+.video-player-box {
+  width: 100%;
+  height: auto;
+}
+.drag-mode {
+  animation: shake .2s ease-out 0s infinite;
+}
+@keyframes shake {
+      0% {
+        transform: rotate(-1deg);
+        animation-timing-function: ease-in;
+      }
+
+      50% {
+        transform: rotate(1.5deg);
+        animation-timing-function: ease-out;
+      }
+    }
 </style>

@@ -21,6 +21,7 @@
                 :options.sync="options"
                 :loading="loading"
                 :server-items-length="total"
+                hide-default-footer
                 class="" >
                 <template v-slot:item.createDate="{ item }">
                     <span>{{item.createDate|dateFormat}}</span>
@@ -47,6 +48,7 @@
                     <v-switch :disabled='item.loading' @change='onEnabled(item)' :true-value='1' :false-value='0' v-model="item.status" inset :label="`${!!item.status ? '启用' : '禁用'}`"></v-switch>
                 </template>
             </v-data-table>
+            <v-row align=‘stretch’><v-spacer></v-spacer><v-col style='flex-grow: 0'><v-pagination @input='onChangePagination' v-model="page" :length="parseInt(total/5)"></v-pagination></v-col></v-row>
         </v-card-text>
     </v-card>
     <v-btn
@@ -85,7 +87,7 @@ export default {
             options: { page: 1, itemsPerPage: 10 },
             items: [],
             headers: [
-                { text: '分类名', align: 'start', sortable: false, value: 'title' },
+                { text: '素材名', align: 'start', sortable: false, value: 'title' },
                 { text: '创建人', align: 'start', sortable: true, value: 'createBy' },
                 { text: '浏览量', align: 'start', sortable: true, value: 'browseCount' },
                 { text: '累计分享', align: 'start', sortable: true, value: 'shareCount' },
@@ -104,6 +106,7 @@ export default {
     mounted() {
         let p = toNumber(this.$route.hash.replace('#', ''));
         this.options.page = (isNaN(p) || !p) ? 1 : p
+        this.page = this.options.page
         this.fetchList({ pageNo: this.options.page })
     },
     watch: {
@@ -120,9 +123,12 @@ export default {
         }
     },
     methods: {
+        onChangePagination(e) {
+            this.fetchList({ pageNo: e })
+        },
         fetchList(params) {
             this.loading = true
-            this.$api.fetchAcrhiveList(params).then(res => {
+            this.$api.fetchAcrhiveList(assign({ pageSize: this.options.itemsPerPage }, params)).then(res => {
                 this.loading = false
                 this.total = res.total
                 this.items = res.content

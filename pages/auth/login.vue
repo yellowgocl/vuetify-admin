@@ -16,14 +16,18 @@
                 <v-form @submit.prevent="validate" id='form' ref="form" v-model="valid" :lazy-validation="lazy">
                   <v-text-field
                     v-model="name"
-                    :counter="10"
+                    :counter="30"
                     :rules="nameRules"
                     clearable
                     label="用户名"
+                    autofocus
+                    tabindex="1"
                     prepend-icon='person'
+                    v-on:keyup.enter.native="onNext"
                     required
                   ></v-text-field>
                   <v-text-field
+                    ref='password'
                     v-model="password"
                     :counter="20"
                     :type="showPassword ? 'text' : 'password'"
@@ -32,6 +36,7 @@
                     :append-icon='showPassword ? "visibility": "visibility_off"'
                     @click:append='showPassword  = !showPassword'
                     label="密码"
+                    tabindex="2"
                     clearable
                     required
                   ></v-text-field>
@@ -66,7 +71,7 @@ export default {
       password: '',
       nameRules: [
         v => !!v || 'Name is required',
-        v => (v && v.length <= 10) || 'Name must be less than 10 characters',
+        v => (v && v.length <= 30) || 'Name must be less than 10 characters',
       ],
       passwordRules: [
         v => !!v || 'Password is required',
@@ -79,13 +84,17 @@ export default {
     console.info(this.$auth.$storage.getLocalStorage('redirectUrl'))
   },
   methods: {
+    onNext($event) {
+      // console.info($event.target.nextElementSibling)
+      this.$refs.password.focus()
+    },
     validate () {
       if (this.loading) {
         return
-      }
-      this.loading = true
+      } 
       let flag = this.$refs.form.validate()
       if (flag) {
+        this.loading = true
         this.$api.login({ data: { account: this.name, password: this.password } }).then(res => {
           // this.$auth.$storage.setUniversal('auth', res.authorization, false)
           // this.$storage.setItem('auth', res.authorization)

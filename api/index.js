@@ -4,6 +4,7 @@ import { merge, isString, isObject, isArray, map } from 'lodash'
 import storage from '~/common/storage'
 let client
 let authModule
+// let source;
 
 const setClient = (newClient) => {
     client = newClient
@@ -144,7 +145,8 @@ const getTag = (params) => {
 const modTag = (params) => {
     return put(urls.MOD_TAG, { data: params })
 }
-const fileUpload = (params) => {
+const fileUpload = (params, onUploadProgress, cancelSource) => {
+    cancelSource = cancelSource || client.CancelToken.source()
     let url = urls.FILE_UPLOAD
     if (isArray(params)) {
         let key = params.length == 1 ? 'file' : 'files'
@@ -155,7 +157,7 @@ const fileUpload = (params) => {
         })
         params = fm
     }
-    return post(url, { data: params, headers: { 'Content-Type': 'multipart/form-data;charset=UTF-8' } })
+    return post(url, { data: params, cancelToken: cancelSource.token, headers: { 'Content-Type': 'multipart/form-data;charset=UTF-8' }, onUploadProgress: progressEvent => onUploadProgress && onUploadProgress.call(undefined, progressEvent, cancelSource) })
 }
 
 const fetchAcrhiveList = (params) => {

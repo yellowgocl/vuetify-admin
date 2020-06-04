@@ -19,11 +19,14 @@
     "@nuxtjs/auth": "^4.9.1",
     "@nuxtjs/axios": "^5.3.6",
     "@nuxtjs/dotenv": "^1.4.0",
+    "gsap": "^3.3.0",
     "lodash": "^4.17.15",
     "nuxt": "^2.0.0",
     "qs": "^6.9.4",
+    "sortablejs": "^1.10.2",
     "urijs": "^1.19.2",
-    "vconsole": "^3.3.4"
+    "vconsole": "^3.3.4",
+    "vue-video-player": "^5.0.2"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config": "^2.0.0",

@@ -45,7 +45,7 @@
                         <v-row class='px-3'>
                             <v-select v-model='editItem.type' :items="typeItems"  item-text='name' item-value='id' label="类型" ></v-select>
                             <v-spacer></v-spacer>
-                            <v-switch v-model="editItem.status" inset :label="`启用状态: ${!!editItem.status ? '启用' : '禁用'}`"></v-switch>
+                            <v-switch :true-value="1" :false-value="0" v-model="editItem.status" inset :label="`启用状态: ${!!editItem.status ? '启用' : '禁用'}`"></v-switch>
                         </v-row>
                     </v-form>
                 </v-sheet>
