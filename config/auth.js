@@ -27,7 +27,7 @@ module.exports = {
     cookie: false,
     redirect: {
         login: '/auth/login',
-        logout: '/',
+        logout: '/auth/login',
         home: '/',
         callback: '/'
     },

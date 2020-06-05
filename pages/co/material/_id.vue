@@ -186,7 +186,7 @@
           ></v-col>
         </v-row>
         <v-form
-          @submit.prevent="validate"
+          @submit.prevent
           id="form"
           ref="form"
           v-model="valid"
@@ -328,6 +328,8 @@
         <div>
           <v-btn
             class="mx-4"
+            type='submit'
+            form='form'
             @click.stop="validate"
             :loading="blockLoading"
             :disabled="blockLoading || !hasModify"
@@ -354,9 +356,11 @@
         </v-toolbar>
         <v-card-text class="mt-4">
           <v-row>
-            <v-col cols="12" sm="8">
+            <v-col cols="12" sm="10">
               <v-form @submit.prevent="submitTag" id="tagForm" ref="tagForm">
                 <v-text-field
+                  autofocus
+                  required
                   hide-details
                   :disabled="submitTagLoading"
                   :loading="submitTagLoading"
@@ -366,7 +370,7 @@
                 ></v-text-field>
               </v-form>
             </v-col>
-            <v-col align-self="end" cols="12" sm="4">
+            <v-col align-self="end" cols="12" sm="2">
               <v-btn
                 color="info"
                 block
@@ -744,9 +748,11 @@ export default {
     },
     validate() {
       let flag = this.$refs.form.validate();
+      console.info(flag)
       if (flag) {
         let req = this.isEdit ? this.$api.modArchive : this.$api.addArchive;
         // this.editItem.mockStatusCode = 400
+        console.info(req)
         return req.call(this, this.data).then(
           res => {
             res = res.data
