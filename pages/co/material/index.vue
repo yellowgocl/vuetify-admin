@@ -1,17 +1,17 @@
 <template>
 <v-container class="co-material">
     <v-card >
-        <v-card-title>
-            <v-col cols=12 md='3'>素材管理</v-col>
-            
-            <v-col cols=12 md='9'>
+        <v-card-title style='position: sticky; top:0; z-index:1;' class='grey darken-4'>
+            <v-col v-if='!$vuetify.breakpoint.xsOnly' cols=12 md='3'>素材管理</v-col>
+            <v-spacer v-else></v-spacer>
+            <v-col cols=9 sm='12' md='9'>
             <v-form @submit.prevent="onSearch">
             <v-text-field
                 solo-inverted
                 flat
                 hide-details
                 v-model="search"
-                append-icon="search"
+                :append-icon="search?'close':'search'"
                 label="输入关键字搜索素材"
                 single-line
             ></v-text-field>
@@ -136,7 +136,7 @@ export default {
         let p = toNumber(this.$route.hash.replace('#', ''));
         this.options.page = (isNaN(p) || !p) ? 1 : p
         this.page = this.options.page
-        this.fetchList({ pageNo: this.options.page })
+        this.$nextTick(() => this.fetchList({ pageNo: this.options.page }))
     },
     watch: {
         // options: {
