@@ -1,8 +1,8 @@
 <template>
 <v-container class="co-material">
     <v-card >
-        <v-card-title style='position: sticky; top:0; z-index:1;' class='grey darken-4'>
-            <v-col v-if='!$vuetify.breakpoint.xsOnly' cols=12 md='3'>素材管理</v-col>
+        <v-card-title class='head grey darken-4'>
+            <v-col v-if='$vuetify.breakpoint.mdAndUp' cols=12 sm='3'>素材管理</v-col>
             <v-spacer v-else></v-spacer>
             <v-col cols=9 sm='12' md='9'>
             <v-form @submit.prevent="onSearch">
@@ -46,10 +46,10 @@
                         <v-progress-circular size='24' indeterminate color="primary"></v-progress-circular>
                     </template>
                     <template v-else>
-                        <div style='min-width: 4rem;'>
-                        <nuxt-link :to='`/co/material/${item.id}`'><v-btn class="mx-1" fab :small='!$vuetify.breakpoint.xsOnly' color='info' icon><v-icon :small='!$vuetify.breakpoint.xsOnly'>edit</v-icon></v-btn></nuxt-link>
-                        <v-btn fab :small='!$vuetify.breakpoint.xsOnly' color='pink' @click.stop="deleteItem(item)" icon><v-icon color='pink' :small='!$vuetify.breakpoint.xsOnly' >delete</v-icon></v-btn>
-                        </div>
+                        <v-row justify="center" style='width: 6rem; min-width: 6rem; border-radius:2rem;' class='.flex-nowrap my-1 mr-n2 pa-1 accent' :class='{"mb-4": $vuetify.breakpoint.xsOnly}'>
+                        <nuxt-link :to='`/co/material/${item.id}`'><v-btn class="mx-1" fab small color='info' icon><v-icon >edit</v-icon></v-btn></nuxt-link>
+                        <v-btn fab small color='pink' @click.stop="deleteItem(item)" icon><v-icon color='pink' >delete</v-icon></v-btn>
+                        </v-row>
                     </template>
                 </template>
                 <template v-slot:item.status="{item}">
@@ -247,6 +247,9 @@ export default {
 <style scoped>
 .co-material {
     margin-bottom: 3.5rem;
+}
+.co-material /deep/ .head {
+    position: sticky; top:0; z-index:1;
 }
 .co-material /deep/ a:any-link{
     text-decoration: none !important;

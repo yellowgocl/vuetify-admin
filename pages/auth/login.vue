@@ -40,12 +40,11 @@
                     clearable
                     required
                   ></v-text-field>
-                  <v-btn></v-btn>
                 </v-form>
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn :loading='loading' type='submit' form='form' color="primary px-4 mr-2 mb-2">确定</v-btn>
+                <v-col cols=6 sm='4'><v-btn block :loading='loading' type='submit' form='form' color="primary px-4 mr-2 mb-2">确定</v-btn></v-col>
               </v-card-actions>
             </v-card>
           </v-col>
