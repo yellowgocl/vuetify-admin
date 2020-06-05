@@ -58,6 +58,7 @@
 
 <script>
 export default {
+  //auth: false,
   layout: 'clean',
   data() {
     return {
@@ -81,7 +82,8 @@ export default {
   },
   mounted() {
     // this.$api.logout()
-    console.info(this.$auth.$storage.getLocalStorage('redirectUrl'))
+    // console.info(this.$auth.$storage.getLocalStorage('redirectUrl'))
+    
   },
   methods: {
     onNext($event) {
@@ -95,13 +97,15 @@ export default {
       let flag = this.$refs.form.validate()
       if (flag) {
         this.loading = true
+        
         this.$api.login({ data: { account: this.name, password: this.password } }).then(res => {
           // this.$auth.$storage.setUniversal('auth', res.authorization, false)
           // this.$storage.setItem('auth', res.authorization)
-          let redirectUrl = this.$auth.$storage.getUniversal('redirectUrl') || '/'
-          this.$router.replace({ path: redirectUrl })
-          this.$auth.$storage.setUniversal('redirectUrl', null)
+          // let redirectUrl = this.$auth.$storage.getUniversal('redirect') || '/'
+          // this.$router.replace({ path: redirectUrl })
+          // this.$auth.$storage.setUniversal('redirectUrl', null)
           this.loading = false
+          return res
 
         }, rej => {
           this.loading = false

@@ -59,7 +59,7 @@ _buildTag = () => {
     }
 }
 const mod = {
-    GET_USER_OWN: (req, res) => {
+    GET_USER: (req, res) => {
         res.json({
             ..._baseResponse(req),
             data: _buildUser()

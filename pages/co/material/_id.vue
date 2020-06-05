@@ -82,7 +82,7 @@
                     >
                       <v-progress-circular
                         indeterminate
-                        color="grey dark-2"
+                        color="grey darken-2"
                       ></v-progress-circular>
                     </v-row> </template
                 ></v-img>
@@ -307,30 +307,32 @@
         <v-btn
           disabled
           color="secondary"
-          x-large
+          :x-large='!$vuetify.breakpoint.xsOnly'
+          :small='$vuetify.breakpoint.xsOnly'
           text
           ></v-btn
         >
       </v-card-actions>
-      <v-card-actions class='actions mr-4' :class='actionsClass'>
+      <v-card-actions class='actions' :class='actionsClass'>
         <v-spacer></v-spacer>
         <v-btn
           @click.stop="exit(true)"
           :loading="blockLoading"
           :disabled="blockLoading"
           color="secondary"
-          x-large
+          :x-large='!$vuetify.breakpoint.xsOnly'
+          
           text
           >&nbsp;&nbsp;取消编辑&nbsp;&nbsp;</v-btn
         >
         <div>
           <v-btn
-            class="ml-4"
+            class="mx-4"
             @click.stop="validate"
             :loading="blockLoading"
             :disabled="blockLoading || !hasModify"
             color="primary"
-            x-large
+            :x-large='!$vuetify.breakpoint.xsOnly'
             >&nbsp;&nbsp;&nbsp;&nbsp;确定保存&nbsp;&nbsp;&nbsp;&nbsp;</v-btn
           >
         </div>
@@ -517,7 +519,7 @@ export default {
     //   }
     // },
     actionsClass() {
-      return [!this.isScrollToBottom && "hold", !this.isScrollToBottom && 'accent']
+      return [!this.isScrollToBottom && "hold", !this.isScrollToBottom && 'grey darken-4', !this.isScrollToBottom ? 'mr-0 pt-4' : 'mr-4']
     },
     isEdit() {
       return !!this.$route.params.id;
@@ -586,6 +588,7 @@ export default {
           // }
           this.$api.fileUpload(n, this.onUploadProgressHandle.bind(this)).then(
             res => {
+              res = res.data
               if (!this.isVideoMode) {
                 this.$set(this.data, "pics", concat(this.data.pics || [], res));
               } else {
@@ -658,6 +661,7 @@ export default {
         this.blockLoading = true;
         this.$api.getArchive(id).then(
           res => {
+            res = res.data
             this.blockLoading = false;
             this.data = res;
             this.$nextTick(() => {
@@ -674,6 +678,7 @@ export default {
             );
             this.$set(this.playerOptions, "sources", sources[0]);
             this.$api.archiveGetCategory(id).then(res => {
+              res = res.data
               let temp = assign({}, this.data);
               temp.categoryIds = map(res, n => n.id);
               // this.$set(this.data, 'categoryIds', map(res, (n) => n.id))
@@ -703,10 +708,12 @@ export default {
         this.reference = Object.assign({}, this.data);
       }
       this.$api.fetchTagList().then(res => {
+        res = res.data
         this.tags = res.content;
         this.displayTags = take(this.tags, 10);
       });
       this.$api.getCategoryList().then(res => {
+        res = res.data
         this.categories = res.content;
       });
     },
@@ -742,6 +749,7 @@ export default {
         // this.editItem.mockStatusCode = 400
         return req.call(this, this.data).then(
           res => {
+            res = res.data
             this.exit(false);
             return res;
           },
@@ -764,6 +772,7 @@ export default {
         this.submitTagLoading = true;
         this.$api.addTag(this.tagValue).then(
           res => {
+            res = res.data
             this.tags.unshift(res);
             this.selectTags.unshift(res);
             this.submitTagLoading = false;
@@ -835,8 +844,9 @@ export default {
 }
 .actions.hold {
   position: fixed;
-  bottom: 40px;
-  right: 24px;
+  bottom: 36px;
+  left: 0;
+  right: 0;
   z-index: 2;
 }
 .drag-mode {

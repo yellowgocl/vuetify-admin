@@ -190,20 +190,13 @@ const getCategoryList = (params = null) => {
     })
 }
 const login = (params) => {
-    return authModule.loginWith('local', params).then(res => {
-        authModule.setUserToken(res.authorization)
-        return res
-    })
+    return authModule.loginWith('local', params)
 }
-const logout = () => {
-    return authModule.logout().then(res => {
-        // authModule.$storage.removeUniversal('auth')
-        // console.info(res)
-        return res
-    })
+const logout = async () => {
+    return await authModule.logout()
 }
 const getUserOwn = () => {
-    return get(urls.GET_USER_OWN)
+    return get(urls.GET_USER)
 }
 
 const fetchTagList = (params = {}) => {

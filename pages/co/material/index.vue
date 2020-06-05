@@ -48,7 +48,7 @@
                     <v-switch :disabled='item.loading' @change='onEnabled(item)' :true-value='1' :false-value='0' v-model="item.status" inset :label="`${!!item.status ? '启用' : '禁用'}`"></v-switch>
                 </template>
             </v-data-table>
-            <v-row align=‘stretch’><v-spacer></v-spacer><v-col style='flex-grow: 0'><v-pagination @input='onChangePagination' v-model="page" :length="paginationCount"></v-pagination></v-col></v-row>
+            <v-row align='stretch'><v-spacer></v-spacer><v-col style='flex-grow: 0'><v-pagination @input='onChangePagination' v-model="page" :length="paginationCount"></v-pagination></v-col></v-row>
         </v-card-text>
     </v-card>
     <v-btn
@@ -132,6 +132,7 @@ export default {
         fetchList(params) {
             this.loading = true
             this.$api.fetchAcrhiveList(assign({ pageSize: this.options.itemsPerPage }, params)).then(res => {
+                res = res.data
                 this.loading = false
                 this.total = res.total
                 this.items = res.content
@@ -184,6 +185,7 @@ export default {
                 item.loading = true
                 this.items = unionWith(this.items, [item])
                 this.$api.modArchive(params).then(res => {
+                    res = res.data
                     item.loading = false
                     this.items = unionWith(this.items, [item])
                 }, rej => {

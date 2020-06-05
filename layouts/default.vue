@@ -13,7 +13,7 @@
         <v-row>
           <v-col cols='4'>
             <v-avatar color="primary" tile :size='68'>
-              <span class="white--text headline">AD</span>
+              <span class="white--text headline">{{account}}</span>
             </v-avatar>
           </v-col>
           <v-col>
@@ -22,7 +22,7 @@
                 Hello
               </v-list-item-title>
               <v-list-item-subtitle>
-                admin
+                {{auth.user.name}}
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-col>
@@ -98,10 +98,12 @@
 
 <script>
 import { reduce, filter, isNull, isUndefined } from 'lodash'
+import { mapState } from 'vuex'
 export default {
-  middleware: 'auth',
+  
   mounted(){
     this.$api.post(this.$api.urls.GET_DRAWER_MENU).then(res => {
+        res = res.data
         this.rootId = res.rootId || undefined
         // this.items = res.items
         this.items = reduce(res, (r, v, k) => {
@@ -122,23 +124,18 @@ export default {
       this.$api.logout()
     }
   },
+  computed: {
+    ...mapState(['auth']),
+    account() {
+      return this.auth.user.account.substr(0, 2).toUpperCase()
+    }
+  },
   data() {
     return {
       clipped: false,
-      drawer: true,
+      drawer: false,
       fixed: false,
-      items: [
-        {
-          icon: 'mdi-apps',
-          title: 'Welcome',
-          to: '/'
-        },
-        {
-          icon: 'mdi-chart-bubble',
-          title: 'Inspire',
-          to: '/inspire'
-        }
-      ],
+      items: [],
       miniVariant: false,
       prominent: false,
       title: '智伴微商城管理后台'

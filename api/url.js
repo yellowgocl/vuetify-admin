@@ -2,8 +2,7 @@
 const mod = {
     LOGIN: { url: '/api/auth/v1/authorize/system', method: 'post', mock: false },
     LOGOUT: { url: '/api/auth/v1/authorize/logout', method: 'get', mock: false },
-    GET_USER: { url: '/api/auth/v1/sys/', method: 'get', mock: false },
-    GET_USER_OWN: { url: '/api/auth/v1/sys', method: 'get', mock: true },
+    GET_USER: { url: '/api/auth/v1/sys/user', method: 'get', mock: false }, // mock: '/api/auth/v1/sys/user/:id'
     GET_DRAWER_MENU: { url: '/api/auth/v1/menu/tree/own', method: 'post', mock: false },
     ADD_CATEGORY: { url: '/api/content/v1/category', method: 'post', mock: false },
     GET_CATEGORY: { url: '/api/content/v1/category', method: 'get', mock: '/api/content/v1/category/:id' },

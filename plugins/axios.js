@@ -21,10 +21,11 @@ export default ({$axios, redirect, app }) => {
             return Promise.reject(data)
         }
         if (data.code == 200) {
-            return data.data
+            return data
         } else {
             if (data.code == 401) {
-                app.$storage.removeItem('auth')
+                // app.$storage.removeItem('auth')
+                app.$auth.reset()
                 redirect('/auth/login')
             }
             return Promise.reject(data)

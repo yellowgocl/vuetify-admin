@@ -191,7 +191,7 @@ export default {
         fetchList() {
             this.items = []
             this.$api.getCategoryList().then(res => {
-                this.resouceItems = res.content
+                this.resouceItems = res.data.content
                 this.openItems = concat(this.resouceItems, [])
                 // this.updateList(res.content)
             })
