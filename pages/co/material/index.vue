@@ -1,25 +1,26 @@
 <template>
 <v-container class="co-material">
     <v-card >
-        <v-card-title class='head grey darken-4'>
-            <v-col v-if='$vuetify.breakpoint.mdAndUp' cols=12 sm='3'>素材管理</v-col>
-            <v-spacer v-else></v-spacer>
-            <v-col cols=9 sm='12' md='9'>
+        <v-card-title class='head grey darken-4' :class='{"pa-1":$vuetify.breakpoint.xsOnly}'>
+            <v-col :class='{"subtitle-2":$vuetify.breakpoint.smAndDown}' cols=4 sm='3'>素材管理</v-col>
+            <v-col cols=8 sm='9' :class='{"py-1": $vuetify.breakpoint.smAndDown}'>
             <v-form @submit.prevent="onSearch">
             <v-text-field
-                solo-inverted
+                solo
                 flat
                 hide-details
                 v-model="search"
-                :append-icon="search?'close':'search'"
+                :append-icon="search?'':'search'"
                 label="输入关键字搜索素材"
+                clearable
+                :dense='$vuetify.breakpoint.xsOnly'
                 single-line
             ></v-text-field>
             <button type='submit' hidden form='form'></button>
             </v-form>
             </v-col>
         </v-card-title>
-        <v-card-text>
+        <v-card-text :class='{"pa-1":$vuetify.breakpoint.xsOnly}'>
             <v-data-table
                 v-if='items && items.length > 0'
                 :headers="headers"
@@ -39,7 +40,8 @@
                     <span>{{item.createSysUser ? item.createSysUser.name : item.createBy}}</span>
                 </template>
                 <template v-slot:item.shareCount="{ item }">
-                    <v-chip small class='share-count-value' :color="getColor(item.shareCount)" dark>{{ item.shareCount }}</v-chip>
+                    <span :class='getColor(item.shareCount)'>{{ item.shareCount }}</span>
+                    <!-- <v-chip small class='share-count-value' :color="getColor(item.shareCount)" dark>{{ item.shareCount }}</v-chip> -->
                 </template>
                 <template v-slot:item.actions="{ item }">
                     <template v-if='item.loading'>
@@ -189,9 +191,9 @@ export default {
             })
         },
         getColor (count) {
-            if (count > 400) return 'red'
-            else if (count > 200) return 'orange'
-            else return 'green'
+            if (count > 400) return 'red--text'
+            else if (count > 200) return 'orange--text'
+            else return 'green--text'
         },
         deleteItem(item) {
             if (item) {
