@@ -554,17 +554,7 @@ export default {
       disabled: true,
       supportPointer: true,
       onEnd: ({ newIndex, oldIndex, oldDraggableIndex, newDraggableIndex }) => {
-        [this.data.pics[oldIndex], this.data.pics[newIndex]] = [
-          this.data.pics[newIndex],
-          this.data.pics[oldIndex]
-        ];
-        // console.info([...this.data.pics])
-        // this.$set(this.data, 'pics', [])
-        setTimeout(
-          () => this.$set(this.data, "pics", [...this.data.pics]),
-          1000
-        );
-        // this.data.pics.splice(newIndex, 0, this.data.pics.splice(oldIndex, 1)[0]);
+        this.data.pics.splice(newIndex, 0, this.data.pics.splice(oldIndex, 1)[0]);
       }
     });
     this.$refs.form.resetValidation()
@@ -707,6 +697,7 @@ export default {
           content: "",
           tags: [],
           title: "",
+          status: 1,
           categoryIds: []
         };
         this.reference = Object.assign({}, this.data);
@@ -748,11 +739,9 @@ export default {
     },
     validate() {
       let flag = this.$refs.form.validate();
-      console.info(flag)
       if (flag) {
         let req = this.isEdit ? this.$api.modArchive : this.$api.addArchive;
         // this.editItem.mockStatusCode = 400
-        console.info(req)
         return req.call(this, this.data).then(
           res => {
             res = res.data
@@ -870,3 +859,4 @@ export default {
   }
 }
 </style>
+

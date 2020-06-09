@@ -65,22 +65,40 @@
                 </v-btn>
             </v-toolbar>
             <v-card-text>
-            <!--  -->
-            <v-treeview v-if='items && items.length > 0' :open.sync='openItems' open-on-click v-model='selection' :selection-type='selectionType' return-object :selectable='selectable' activatable hoverable shaped :items="items">
-                <template slot="append" slot-scope="{ item }">
-                    <v-row>
-                        <v-btn @click.stop='openEdit(item, true)' class="mx-2" fab dark small color="info">
-                            <v-icon dense small dark>edit</v-icon>
-                        </v-btn>
-                        <v-btn @click.stop='openEdit(item, false)' class="mx-2" fab dark small color="primary">
-                            <v-icon dense small dark>add</v-icon>
-                        </v-btn>
-                        <v-btn @click.stop="deleteCategory(item)" class="mx-2" fab dark small color="error">
-                            <v-icon>delete</v-icon>
-                        </v-btn>
-                    </v-row>
-                </template>
-            </v-treeview>
+                 <v-treeview @update:open='onOpenHandle' open-all v-if='items && items.length > 0' :open.sync='openItems' :open-on-click='false' v-model='selection' :selection-type='selectionType' return-object :selectable='selectable' :activatable='false' hoverable shaped :items="items">  
+                    <template v-slot:label='{item, open}'>
+                        <draggable :list="resouceItems" group="node" :id="item.id" :data-parent-id="item.parentId" @end='onDragEnd(item, $event)'>
+                            <div class='item-label'>{{item.name}}{{item.id + ':' + item.parentId}}</div>
+                        </draggable>
+                    </template>
+                    <template v-slot:append='{item}'>
+                        <component @input='onOpenItemOption' :value='isOpenOption(item.id)' open-on-hover direction='left'  :is='$vuetify.breakpoint.xsOnly ? "v-speed-dial" : "v-row"' >
+                            <template v-slot:activator>
+                                <v-btn
+                                    class='mr-n2'
+                                    @click.stop="onOpenItemOption(item.id)"
+                                    color="blue darken-2"
+                                    dark
+                                    fab
+                                    icon >
+                                <v-icon v-if="isOpenOption(item.id)">close</v-icon>
+                                <v-icon v-else>more_vert</v-icon>
+                                </v-btn>
+                            </template>
+                            <v-row no-gutters class='flex-nowrap mr-1 px-1 py-1 accent' style='border-radius:4rem;'>
+                                <v-btn @click.stop='openEdit(item, true)' fab icon small color="info">
+                                    <v-icon small  >edit</v-icon>
+                                </v-btn>
+                                <v-btn @click.stop='openEdit(item, false)' fab icon small color="primary">
+                                    <v-icon small  >add</v-icon>
+                                </v-btn>
+                                <v-btn @click.stop="deleteCategory(item)" fab icon small color="error">
+                                    <v-icon small >delete</v-icon>
+                                </v-btn>
+                            </v-row>
+                        </component>
+                    </template>
+                </v-treeview>
             </v-card-text>
             <!-- <v-row v-else align-self='center' no-gutters align='center' justify='center'>
                 <v-col align-self='center' cols='4 text-center'>
@@ -94,13 +112,16 @@
 </template>
 
 <script>
-import { map, groupBy, assign, indexOf, chain, concat, omit } from 'lodash' 
+import draggable from 'vuedraggable'
+import { map, groupBy, assign, indexOf, chain, concat, omit, find, toNumber, findIndex } from 'lodash' 
 export default {
+    components: { draggable },
     data() {
         return {
             snackbarMode: 0,
             snackbar: false,
             tipsText: '',
+            openOptionId: null,
             bannerFile: null,
             typeItems: [{ id: 0, name: '分类' }],
             nameRules: [
@@ -120,7 +141,8 @@ export default {
             openAll: false,
             modalTitle: '',
             isEdit: false,
-            editItem: {}
+            editItem: {},
+            inited: false
         }
     },
     watch: {
@@ -132,7 +154,8 @@ export default {
             }
         },
         resouceItems(n, o) {
-            this.updateList(n)
+            // console.info(n)
+            this.updateList(n, !this.inited)
         }
     },
     computed: {
@@ -144,6 +167,41 @@ export default {
         this.fetchList()
     },
     methods: {
+        onDragEnd(item, evt) {
+            let pid = toNumber(item.parentId);
+            let toPid = toNumber(evt.to.dataset.parentId)
+            let tid = toNumber(evt.to.id)
+            let p = find(this.resouceItems, ['id', pid])
+            let toP = find(this.resouceItems, ['id', toPid])
+            let isChangeParent = !(pid == toPid)
+            let oldIndex = findIndex(p.children, (o) => o.id == item.id)
+            let newIndex = findIndex(isChangeParent ? toP.children : p.children, (o) => o.id == tid)
+            if (!isChangeParent) {
+                //同层互换位置
+                // let p = find(this.items, ['id', pid])
+                let pIndex = findIndex(this.resouceItems, ['id', p.id])
+                p.children.splice(newIndex, 0, p.children.splice(oldIndex, 1)[0]);
+                // this.$set(this.resouceItems, pIndex, p)
+            } else {
+                item.parentId = toP.id
+                p.children.splice(oldIndex, 1)
+                toP.children.push(item)
+            }
+            this.resouceItems = concat(this.resouceItems, [])
+        },
+        onOpenHandle(e) {
+            console.info(e)
+        },
+        isOpenOption(id) {
+            return this.openOptionId == id
+        },
+        onOpenItemOption(id) {
+            if (this.isOpenOption(id)) {
+                this.openOptionId = null
+            } else {
+                this.openOptionId = id
+            }
+        },
         onClickDialogOutside() {
             return false
         },
@@ -165,6 +223,7 @@ export default {
             this.bannerFile = null
             this.isEdit = isEdit
             this.dialog = true
+            this.openOptionId = null
             this.$nextTick(() => this.$refs.form.resetValidation())
         },
         updateList(items) {
@@ -177,15 +236,24 @@ export default {
             .value()
             let result = []
             map(items, (v, k) => {
-                let children = temp[v.id]
-                this.$set(v, 'children', [])
-                if (!!children) {
-                    v.children = children
+                if (!this.inited) {
+                    let children = temp[v.id]
+                    this.$set(v, 'children', [])
+                    if (!!children) {
+                        this.$set(v, 'children', children)
+                    }
+                } else {
+                    if (v.children) {
+                        this.$set(v, 'children', v.children)
+                    }
                 }
                 if (!v.parentId) {
                     result.push(v)
                 }
             })
+            if (!this.inited) {
+                this.inited = true
+            }
             this.items = result
         },
         fetchList() {
@@ -216,6 +284,7 @@ export default {
         deleteCategory(item) {
             // this.resouceItems.splice(indexOf(this.resouceItems, item), 1)
             let flag = confirm('是否确认删除选中分类？')
+            this.openOptionId = null
             flag && this.$api.delCategory(item.id).then(res => {
                 this.tipsText = '删除分类成功'
                 this.snackbarMode = 1

@@ -39,7 +39,7 @@ export default {
    ** Plugins to load before mounting the App
    */
   plugins: [
-    '~/plugins/app', '~/plugins/axios',
+    '~/plugins/app', '~/plugins/axios', '~/plugins/vuetify',
     { src: '~/plugins/video-player.js', ssr: false }, 
     { src: '~/plugins/sortable.js', ssr: false }
   ],

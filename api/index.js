@@ -164,7 +164,7 @@ const fetchAcrhiveList = (params) => {
     let _base = {
         "pageNo": 1,
         "pageSize": 999,
-        "categoryId": null,
+        "categoryIds": null,
         "status": null,
         "keywords": null,
         "tags": null,

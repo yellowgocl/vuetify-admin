@@ -4,22 +4,58 @@
         <v-card-title class='head grey darken-4' :class='{"pa-1":$vuetify.breakpoint.xsOnly}'>
             <v-col :class='{"subtitle-2":$vuetify.breakpoint.smAndDown}' cols=4 sm='3'>素材管理</v-col>
             <v-col cols=8 sm='9' :class='{"py-1": $vuetify.breakpoint.smAndDown}'>
-            <v-form @submit.prevent="onSearch">
-            <v-text-field
-                solo
-                flat
-                hide-details
-                v-model="search"
-                :append-icon="search?'':'search'"
-                label="输入关键字搜索素材"
-                clearable
-                :dense='$vuetify.breakpoint.xsOnly'
-                single-line
-            ></v-text-field>
-            <button type='submit' hidden form='form'></button>
-            </v-form>
+                <v-form @submit.prevent="onSearch">
+                    <v-text-field
+                        solo
+                        flat
+                        hide-details
+                        v-model="search"
+                        :append-icon="search?'':'search'"
+                        label="输入关键字搜索素材"
+                        clearable
+                        :dense='$vuetify.breakpoint.xsOnly'
+                        single-line
+                    ></v-text-field>
+                    <button type='submit' hidden form='form'></button>
+                </v-form>
             </v-col>
         </v-card-title>
+        <v-card-text :class='{"pa-1":$vuetify.breakpoint.xsOnly}'>
+            <v-row>
+            <v-col cols=12 sm='6'>
+                <v-select
+                    v-model="selectedCategoies"
+                    :items="categories"
+                    attach
+                    solo-inverted
+                    flat
+                    chips
+                    item-value='id'
+                    item-text='name'
+                    hide-details
+                    placeholder='选择分类(可多选)'
+                    multiple
+                    @blur='onSearch'
+                ></v-select>
+            </v-col>
+            <v-col cols=12 sm='6'>
+                <v-select
+                    v-model="selectedTags"
+                    :items="tags"
+                    attach
+                    solo-inverted
+                    flat
+                    chips
+                    item-value='value'
+                    item-text='value'
+                    hide-details
+                    placeholder='选择标签(可多选)'
+                    multiple
+                    @blur='onSearch'
+                ></v-select>
+            </v-col>
+            </v-row>
+        </v-card-text>
         <v-card-text :class='{"pa-1":$vuetify.breakpoint.xsOnly}'>
             <v-data-table
                 v-if='items && items.length > 0'
@@ -48,9 +84,9 @@
                         <v-progress-circular size='24' indeterminate color="primary"></v-progress-circular>
                     </template>
                     <template v-else>
-                        <v-row justify="center" style='width: 6rem; min-width: 6rem; border-radius:2rem;' class='.flex-nowrap my-1 mr-n2 pa-1 accent' :class='{"mb-4": $vuetify.breakpoint.xsOnly}'>
-                        <nuxt-link :to='`/co/material/${item.id}`'><v-btn class="mx-1" fab small color='info' icon><v-icon >edit</v-icon></v-btn></nuxt-link>
-                        <v-btn fab small color='pink' @click.stop="deleteItem(item)" icon><v-icon color='pink' >delete</v-icon></v-btn>
+                        <v-row justify="center" style='width: 6rem; min-width: 6rem; border-radius:2rem;' class='flex-nowrap my-1 mr-n2 pa-1 accent' :class='{"mb-4": $vuetify.breakpoint.xsOnly}'>
+                            <nuxt-link :to='`/co/material/${item.id}`'><v-btn class="mx-1" fab small color='info' icon><v-icon >edit</v-icon></v-btn></nuxt-link>
+                            <v-btn fab small color='pink' @click.stop="deleteItem(item)" icon><v-icon color='pink' >delete</v-icon></v-btn>
                         </v-row>
                     </template>
                 </template>
@@ -107,6 +143,8 @@ import { unionWith, merge, toNumber, assign, pick, keys, unset, isNaN } from 'lo
 export default {
     data() {
         return {
+            selectedCategoies: [],
+            selectedTags: [],
             snackbarMode: 0,
             snackbar: false,
             tipsText: '',
@@ -115,6 +153,8 @@ export default {
             search: '',
             loading: false,
             options: { page: 1, itemsPerPage: 10 },
+            categories: [],
+            tags: [],
             items: [],
             headers: [
                 { text: '状态', align: 'center', sortable: true, value: 'status' },
@@ -139,6 +179,14 @@ export default {
         this.options.page = (isNaN(p) || !p) ? 1 : p
         this.page = this.options.page
         this.$nextTick(() => this.fetchList({ pageNo: this.options.page }))
+        this.$api.getCategoryList().then(res => {
+            res = res.data
+            this.categories = res.content;
+        });
+        this.$api.fetchTagList().then(res => {
+            res = res.data
+            this.tags = res.content;
+        });
     },
     watch: {
         // options: {
@@ -163,7 +211,11 @@ export default {
         },
         onSearch() {
             this.reset()
-            this.fetchList({ pageNo: this.options.page })
+            this.fetchList({ 
+                pageNo: this.options.page, 
+                categoryIds: this.selectedCategoies,
+                tags: this.selectedTags
+            })
         },
         onChangePagination(e) {
             this.fetchList({ pageNo: e })
