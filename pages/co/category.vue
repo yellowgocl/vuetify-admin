@@ -56,17 +56,31 @@
                 </v-card-actions> -->
             </v-card>
         </v-dialog>
-        <v-card min-height='75vh'>
+        <v-card min-height='75vh' class='pb-6'>
+            <v-btn
+                nuxt
+                @click.stop='openEdit(null, false)'
+                color="secondary"
+                fixed
+                fab
+                large
+                dark
+                bottom
+                right
+                class="fab"
+            >
+                <v-icon>add</v-icon>
+            </v-btn>
             <v-toolbar color='accent' :dark="true">
                 <v-toolbar-title>素材分类管理</v-toolbar-title>
                 <v-spacer></v-spacer>                    
-                <v-btn color='primary' fab dark small @click.stop='openEdit(null, false)' class="mx-2">
+                <!-- <v-btn color='primary' fab dark small @click.stop='openEdit(null, false)' class="mx-2">
                     <v-icon dark>add</v-icon>
-                </v-btn>
+                </v-btn> -->
             </v-toolbar>
             <v-card-text>
                  <v-treeview @update:open='onOpenHandle' open-all v-if='items && items.length > 0' :open.sync='openItems' :open-on-click='false' v-model='selection' :selection-type='selectionType' return-object :selectable='selectable' :activatable='false' hoverable shaped :items="items">  
-                    <template v-slot:label='{item, open}'>
+                    <template v-slot:label='{item}'>
                         <draggable :list="resouceItems" group="node" :id="item.id" :data-parent-id="item.parentId" @end='onDragEnd(item, $event)'>
                             <div class='item-label'>{{item.name}}{{item.id + ':' + item.parentId}}</div>
                         </draggable>
