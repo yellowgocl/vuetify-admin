@@ -70,6 +70,17 @@ const _baseTagQueryParamsObject = (value) => {
         "remarks": null
     }
 }
+const orderByCategory = (sid, tid, asc=true) => {
+    if (sid && tid) {
+        let url = `${util.parseUri(urls.ORDER_CATEGORY, false)}/${sid}/${asc?'back':'front'}/${tid}`
+        return post(url)
+    } else {
+        return Promise.reject({
+            code: -500,
+            message: 'sourceId或targetId不能为空'
+        })
+    }
+}
 const addCategory = (params) => {
     if (isString(params)) {
         params = { ..._baseCategoryQueryParamsObject(), name: params }
@@ -208,4 +219,4 @@ const fetchTagList = (params = {}) => {
     return get(url)
 }
 
-export { urls, getUserOwn, login, logout, setAuth, archiveGetCategory, acrhiveAddCategory, fetchAcrhiveList, fetchTagList, fileUpload, setClient, request, get, post, addCategory, delCategory, getCategory, modCategory, getCategoryList, addArchive, delArchive, getArchive, modArchive, addTag, delTag, getTag, modTag }
+export { urls, getUserOwn, login, logout, setAuth, archiveGetCategory, acrhiveAddCategory, fetchAcrhiveList, fetchTagList, fileUpload, setClient, request, get, post, orderByCategory, addCategory, delCategory, getCategory, modCategory, getCategoryList, addArchive, delArchive, getArchive, modArchive, addTag, delTag, getTag, modTag }

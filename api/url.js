@@ -4,6 +4,7 @@ const mod = {
     LOGOUT: { url: '/api/auth/v1/authorize/logout', method: 'get', mock: false },
     GET_USER: { url: '/api/auth/v1/sys/user', method: 'get', mock: false }, // mock: '/api/auth/v1/sys/user/:id'
     GET_DRAWER_MENU: { url: '/api/auth/v1/menu/tree/own', method: 'post', mock: false },
+    ORDER_CATEGORY: { url: '/api/content/v1/category/order', method: 'post', mock: false }, // mock: '/api/content//v1/category/order/:sourceId/back/:targetId'
     ADD_CATEGORY: { url: '/api/content/v1/category', method: 'post', mock: false },
     GET_CATEGORY: { url: '/api/content/v1/category', method: 'get', mock: '/api/content/v1/category/:id' },
     MOD_CATEGORY: { url: '/api/content/v1/category', method: 'put', mock: false },

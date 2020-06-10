@@ -41,7 +41,7 @@
                     </v-row>
                     <v-form @submit.prevent="validate" id='form' ref="form" v-model="valid" :lazy-validation="lazy">
                         <v-text-field class='mb-4' :rules='nameRules' hint='必填' :persistent-hint='true' v-model="editItem.name" label="分类名" ></v-text-field>
-                        <v-text-field class='mb-4' type="number" v-model="editItem.orderNum" label="排序号" ></v-text-field>
+                        <v-text-field v-if='false' class='mb-4' type="number" v-model="editItem.orderNum" label="排序号" ></v-text-field>
                         <v-row class='px-3'>
                             <v-select v-model='editItem.type' :items="typeItems"  item-text='name' item-value='id' label="类型" ></v-select>
                             <v-spacer></v-spacer>
@@ -66,6 +66,7 @@
                 dark
                 bottom
                 right
+                :loading='loading'
                 class="fab"
             >
                 <v-icon>add</v-icon>
@@ -82,28 +83,29 @@
                     hide-details
                     v-model="isEditMode"
                     inset
+                    :loading='loading'
                     :disabled='!inited'
                     :label="`${isEditMode ? '排序模式' : '编辑模式'}`"
                     ></v-switch>
             </v-card-title>
             <v-card-text>
-                 <v-treeview @update:open='onOpenHandle' open-all v-if='items && items.length > 0' :open.sync='openItems' :open-on-click='false' v-model='selection' :selection-type='selectionType' return-object :selectable='selectable' :activatable='false' hoverable shaped :items="items">  
+                 <v-treeview @update:open='onOpenHandle' open-all v-if='items && items.length > 0' :open.sync='openItems' open-on-click v-model='selection' :selection-type='selectionType' return-object :selectable='selectable' :activatable='false' hoverable shaped :items="items">  
                     <template v-slot:label='{item}'>
-                        <draggable :disabled='!isEditMode' :list="resouceItems" group="node" :id="item.id" :data-parent-id="item.parentId" @end='onDragEnd(item, $event)'>
+                        <draggable :disabled='loading || !isEditMode' :list="resouceItems" group="node" :id="item.id" :data-parent-id="item.parentId" @end='onDragEnd(item, $event)'>
                             <v-row no-gutters justify='space-around' align='center'>
-                            <div class='item-label'>{{item.name}}</div>
-                            <v-spacer></v-spacer>
+                            <v-col><div class='item-label'>{{item.name}}</div></v-col>
+                            <v-spacer v-if='isEditMode'></v-spacer>
                             <v-scroll-x-transition hide-on-leave >
-                                <v-btn fab icon color='info' small v-if='isEditMode'>
+                                <v-btn :loading='loading' fab icon color='info' v-if='isEditMode'>
                                     <v-icon >menu</v-icon>
                                 </v-btn>
                             </v-scroll-x-transition>
                             </v-row>
                         </draggable>
                     </template>
-                    <template v-slot:append='{item}'>
+                    <template v-slot:append='{item}' v-if='!isEditMode'>
                         <v-scroll-x-transition hide-on-leave>
-                        <component v-if='!isEditMode' @input='onOpenItemOption' :value='isOpenOption(item.id)' open-on-hover direction='left'  :is='$vuetify.breakpoint.xsOnly ? "v-speed-dial" : "v-row"' >
+                        <component @input='onOpenItemOption' :value='isOpenOption(item.id)' open-on-hover direction='left'  :is='$vuetify.breakpoint.xsOnly ? "v-speed-dial" : "v-row"' >
                             <template v-slot:activator>
                                 <v-btn
                                     class='mr-n2'
@@ -129,6 +131,7 @@
                             </v-row>
                         </component>
                         </v-scroll-x-transition>
+                        
                     </template>
                 </v-treeview>
             </v-card-text>
@@ -176,6 +179,7 @@ export default {
             editItem: {},
             inited: false,
             isEditMode: false,
+            loading: false
         }
     },
     watch: {
@@ -211,16 +215,19 @@ export default {
             let isChangeParent = !(pid == toPid)
             let oldIndex = findIndex(pContainer, (o) => o.id == item.id)
             let newIndex = findIndex(toPContainer, (o) => o.id == tid)
-            if (!isChangeParent) {
+            let asc = oldIndex < newIndex
+            if  (item.id == toPid) {
+                this.snackbar = true;
+                this.tipsText = '不能把父分类并入其子集内。'
+            } else if (!isChangeParent) {
                 //同层互换位置
-                // let p = find(this.items, ['id', pid])
                 toPContainer.splice(newIndex, 0, toPContainer.splice(oldIndex, 1)[0]);
-                // toP.children = toPContainer
-                // this.$set(this.resouceItems, pIndex, p)
+                this.orderByCategory(item, tid, asc)
             } else {
                 item.parentId = toP ? toP.id : 0
                 pContainer.splice(oldIndex, 1)
                 toPContainer.splice(newIndex, 0, item)
+                this.orderByCategory(item, tid, asc, true)
             }
             this.resouceItems = concat(this.resouceItems, [])
         },
@@ -291,23 +298,50 @@ export default {
             }
             this.items = result
         },
+        orderByCategory(source, tid, asc = true, mod = false) {
+            let result = this.$api.orderByCategory(source.id, tid, asc)
+            this.loading = true
+            if (mod) {
+                // source.parentId = parent.id
+                result = this.$api.modCategory(source).then((res) => {
+                    return this.$api.orderByCategory(source.id, tid, asc)
+                }, rej => {
+                    this.loading = false
+                    return rej
+                })
+            }
+            return result.then(res => {
+                this.loading = false
+                return res
+            }, rej => {
+                this.loading = false
+                return rej
+            })
+        },
         fetchList() {
             this.items = []
+            this.loading = true
             this.$api.getCategoryList().then(res => {
                 this.resouceItems = res.data.content
                 this.openItems = concat(this.resouceItems, [])
+                this.loading = false
                 // this.updateList(res.content)
+            }, rej => {
+                this.loading = false
             })
         },
         validate() {
             let flag = this.$refs.form.validate()
             if (flag) {
+                this.loading = true
                 let req = this.isEdit ? this.$api.modCategory : this.$api.addCategory 
                 // this.editItem.mockStatusCode = 400
                 this.editItem = omit(this.editItem, ['children'])
                 return req.call(this, this.editItem).then(res => {
+                    this.loading = false
                     return res
                 }, rej => {
+                    this.loading = false
                     this.snackbar = true;
                     this.tipsText = rej.message
                     return Promise.reject(rej)
@@ -319,16 +353,19 @@ export default {
         deleteCategory(item) {
             // this.resouceItems.splice(indexOf(this.resouceItems, item), 1)
             let flag = confirm('是否确认删除选中分类？')
+            this.loading = true
             this.openOptionId = null
             flag && this.$api.delCategory(item.id).then(res => {
                 this.tipsText = '删除分类成功'
                 this.snackbarMode = 1
+                this.loading = false
                 this.snackbar = true
                 this.resouceItems.splice(indexOf(this.resouceItems, item), 1)
                 // this.$nextTick(() => this.updateList(this.resouceItems))
             }, rej => {
                 this.tipsText = rej.messaage
                 this.snackbarMode = 0
+                this.loading = false
                 this.snackbar = true
                 return Promise.reject(rej)
             })
