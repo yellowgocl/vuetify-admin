@@ -84,8 +84,8 @@
                         <v-progress-circular size='24' indeterminate color="primary"></v-progress-circular>
                     </template>
                     <template v-else>
-                        <v-row justify="center" style='width: 6rem; min-width: 6rem; border-radius:2rem;' class='flex-nowrap my-1 mr-n2 pa-1 accent' :class='{"mb-4": $vuetify.breakpoint.xsOnly}'>
-                            <nuxt-link :to='`/co/material/${item.id}`'><v-btn class="mx-1" fab small color='info' icon><v-icon >edit</v-icon></v-btn></nuxt-link>
+                        <v-row justify="space-around" class='actions flex-nowrap my-1 mr-n2 pa-1 accent' :class='{"mb-4": $vuetify.breakpoint.xsOnly}'>
+                            <nuxt-link :to='`/co/material/${item.id}`'><v-btn class="mr-1" fab small color='info' icon><v-icon >edit</v-icon></v-btn></nuxt-link>
                             <v-btn fab small color='pink' @click.stop="deleteItem(item)" icon><v-icon color='pink' >delete</v-icon></v-btn>
                         </v-row>
                     </template>
@@ -300,8 +300,8 @@ export default {
 </script>
 
 <style scoped>
-.co-material {
-    
+.co-material .actions {
+    border-radius: 3rem;
 }
 .co-material /deep/ .head {
     position: sticky; top:0; z-index:1;
