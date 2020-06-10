@@ -52,6 +52,7 @@
                     hide-details
                     placeholder='选择标签(可多选)'
                     multiple
+                    clearable
                     @blur='onSearch'
                 ></v-select>
             </v-col>

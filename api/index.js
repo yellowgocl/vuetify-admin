@@ -28,8 +28,7 @@ const request = function(url, method, option = {}) {
     method = util.parseMethod(method || url)
     url = util.parseUri(url)
     // let auth = storage.getItem('auth') || ''
-    let auth = authModule.$storage.getUniversal('auth', false)
-    console.info(auth)
+    // let auth = authModule.$storage.getUniversal('auth', false)
     let headers = {
         deviceType: 'pc', deviceId: 99999
     }
