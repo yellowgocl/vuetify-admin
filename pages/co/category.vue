@@ -56,9 +56,8 @@
                 </v-card-actions> -->
             </v-card>
         </v-dialog>
-        <v-card min-height='75vh' class='pb-6'>
+        <v-card min-height='75vh' class='pb-6 category-container'>
             <v-btn
-                nuxt
                 @click.stop='openEdit(null, false)'
                 color="secondary"
                 fixed
@@ -71,22 +70,40 @@
             >
                 <v-icon>add</v-icon>
             </v-btn>
-            <v-toolbar color='accent' :dark="true">
+            <!-- <v-toolbar color='accent' :dark="true">
                 <v-toolbar-title>素材分类管理</v-toolbar-title>
                 <v-spacer></v-spacer>                    
-                <!-- <v-btn color='primary' fab dark small @click.stop='openEdit(null, false)' class="mx-2">
-                    <v-icon dark>add</v-icon>
-                </v-btn> -->
-            </v-toolbar>
+            </v-toolbar> -->
+            <v-card-title class='head grey darken-4' :class='{"pa-1":$vuetify.breakpoint.xsOnly}'>
+                <v-col :class='{"subtitle-2":$vuetify.breakpoint.smAndDown}' cols=4 sm='3'>分类管理</v-col>
+                <v-spacer></v-spacer>
+                <v-switch
+                    class="video-mode-switch ma-0 pa-0"
+                    hide-details
+                    v-model="isEditMode"
+                    inset
+                    :disabled='!inited'
+                    :label="`${isEditMode ? '排序模式' : '编辑模式'}`"
+                    ></v-switch>
+            </v-card-title>
             <v-card-text>
                  <v-treeview @update:open='onOpenHandle' open-all v-if='items && items.length > 0' :open.sync='openItems' :open-on-click='false' v-model='selection' :selection-type='selectionType' return-object :selectable='selectable' :activatable='false' hoverable shaped :items="items">  
                     <template v-slot:label='{item}'>
-                        <draggable :list="resouceItems" group="node" :id="item.id" :data-parent-id="item.parentId" @end='onDragEnd(item, $event)'>
-                            <div class='item-label'>{{item.name}}{{item.id + ':' + item.parentId}}</div>
+                        <draggable :disabled='!isEditMode' :list="resouceItems" group="node" :id="item.id" :data-parent-id="item.parentId" @end='onDragEnd(item, $event)'>
+                            <v-row no-gutters justify='space-around' align='center'>
+                            <div class='item-label'>{{item.name}}</div>
+                            <v-spacer></v-spacer>
+                            <v-scroll-x-transition hide-on-leave >
+                                <v-btn fab icon color='info' small v-if='isEditMode'>
+                                    <v-icon >menu</v-icon>
+                                </v-btn>
+                            </v-scroll-x-transition>
+                            </v-row>
                         </draggable>
                     </template>
                     <template v-slot:append='{item}'>
-                        <component @input='onOpenItemOption' :value='isOpenOption(item.id)' open-on-hover direction='left'  :is='$vuetify.breakpoint.xsOnly ? "v-speed-dial" : "v-row"' >
+                        <v-scroll-x-transition hide-on-leave>
+                        <component v-if='!isEditMode' @input='onOpenItemOption' :value='isOpenOption(item.id)' open-on-hover direction='left'  :is='$vuetify.breakpoint.xsOnly ? "v-speed-dial" : "v-row"' >
                             <template v-slot:activator>
                                 <v-btn
                                     class='mr-n2'
@@ -111,6 +128,7 @@
                                 </v-btn>
                             </v-row>
                         </component>
+                        </v-scroll-x-transition>
                     </template>
                 </v-treeview>
             </v-card-text>
@@ -156,7 +174,8 @@ export default {
             modalTitle: '',
             isEdit: false,
             editItem: {},
-            inited: false
+            inited: false,
+            isEditMode: false,
         }
     },
     watch: {
@@ -183,29 +202,30 @@ export default {
     methods: {
         onDragEnd(item, evt) {
             let pid = toNumber(item.parentId || 0);
-            let toPid = toNumber(evt.to.dataset.parentId)
+            let toPid = toNumber(evt.to.dataset.parentId || 0)
             let tid = toNumber(evt.to.id)
             let p = find(this.resouceItems, ['id', pid])
-            let pChildren = p ? p.children : this.items
             let toP = find(this.resouceItems, ['id', toPid])
+            let pContainer = p ? p.children : this.items
+            let toPContainer = toP ? toP.children : this.items
             let isChangeParent = !(pid == toPid)
-            let oldIndex = findIndex(pChildren, (o) => o.id == item.id)
-            let newIndex = findIndex(!isChangeParent ? pChildren : toP.children, (o) => o.id == tid)
+            let oldIndex = findIndex(pContainer, (o) => o.id == item.id)
+            let newIndex = findIndex(toPContainer, (o) => o.id == tid)
             if (!isChangeParent) {
                 //同层互换位置
                 // let p = find(this.items, ['id', pid])
-                let pIndex = findIndex(this.resouceItems, ['id', p.id])
-                pChildren.splice(newIndex, 0, pChildren.splice(oldIndex, 1)[0]);
+                toPContainer.splice(newIndex, 0, toPContainer.splice(oldIndex, 1)[0]);
+                // toP.children = toPContainer
                 // this.$set(this.resouceItems, pIndex, p)
             } else {
-                item.parentId = toP.id
-                p.children.splice(oldIndex, 1)
-                toP.children.push(item)
+                item.parentId = toP ? toP.id : 0
+                pContainer.splice(oldIndex, 1)
+                toPContainer.splice(newIndex, 0, item)
             }
             this.resouceItems = concat(this.resouceItems, [])
         },
         onOpenHandle(e) {
-            console.info(e)
+            // console.info(e)
         },
         isOpenOption(id) {
             return this.openOptionId == id
@@ -243,13 +263,13 @@ export default {
         },
         updateList(items) {
             // items = concat(items, [])
-            this.items = []
+            // this.items = []
             let temp = chain(items).map(o => {
                 o.parentId = o.parentId || null
                 return o
             }).groupBy('parentId')
             .value()
-            let result = []
+            let result = this.items
             map(items, (v, k) => {
                 if (!this.inited) {
                     let children = temp[v.id]
@@ -262,7 +282,7 @@ export default {
                         this.$set(v, 'children', v.children)
                     }
                 }
-                if (!v.parentId) {
+                if (!v.parentId && !find(result, ['id', v.id])) {
                     result.push(v)
                 }
             })
@@ -318,5 +338,7 @@ export default {
 </script>
 
 <style scoped>
-
+.category-container /deep/ .head {
+    position: sticky; top:0; z-index:1;
+}
 </style>

@@ -71,12 +71,12 @@ export default {
       name: '',
       password: '',
       nameRules: [
-        v => !!v || 'Name is required',
-        v => (v && v.length <= 30) || 'Name must be less than 10 characters',
+        v => !!v || '名称不能为空',
+        v => (v && v.length <= 30) || '内容长度不能超出30个字符',
       ],
       passwordRules: [
-        v => !!v || 'Password is required',
-        v => (v && v.length <= 20) || 'Password must be less than 20 characters',
+        v => !!v || '密码不能为空',
+        v => (v && v.length <= 20) || '内容长度不能超出20个字符',
       ],
     }
   },
