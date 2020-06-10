@@ -300,7 +300,7 @@ export default {
 
 <style scoped>
 .co-material {
-    margin-bottom: 3.5rem;
+    
 }
 .co-material /deep/ .head {
     position: sticky; top:0; z-index:1;
@@ -308,10 +308,10 @@ export default {
 .co-material /deep/ a:any-link{
     text-decoration: none !important;
 }
-.co-material /deep/ .fab {
+/* .co-material /deep/ .fab {
     bottom: 3rem;
     right: 2rem;
-}
+} */
 .co-material .share-count-value {
     min-width: 3rem;
     text-align: center;

@@ -842,7 +842,7 @@ export default {
   bottom: 36px;
   left: 0;
   right: 0;
-  z-index: 2;
+  z-index: 99;
 }
 .drag-mode {
   animation: shake 0.2s ease-out 0s infinite;
