@@ -20,8 +20,8 @@
                 </v-form>
             </v-col>
         </v-card-title>
-        <v-card-text :class='{"pa-1":$vuetify.breakpoint.xsOnly}'>
-            <v-row>
+        <v-card-text :class='{"px-2":$vuetify.breakpoint.xsOnly}'>
+            <v-row align='center' align-contennt='space-around'>
             <v-col cols=12 sm='6'>
                 <v-select
                     v-model="selectedCategoies"
@@ -35,7 +35,8 @@
                     hide-details
                     placeholder='选择分类(可多选)'
                     multiple
-                    @blur='onSearch'
+                    clearable
+                    @blur.stop='onSearch'
                 ></v-select>
             </v-col>
             <v-col cols=12 sm='6'>
@@ -56,7 +57,7 @@
             </v-col>
             </v-row>
         </v-card-text>
-        <v-card-text :class='{"pa-1":$vuetify.breakpoint.xsOnly}'>
+        <v-card-text :class='{"pa-0":$vuetify.breakpoint.xsOnly, "mt-n12": $vuetify.breakpoint.xsOnly }'>
             <v-data-table
                 v-if='items && items.length > 0'
                 :headers="headers"
@@ -64,11 +65,9 @@
                 :options.sync="options"
                 :loading="loading"
                 :server-items-length="total"
-                hide-default-footer
-                class="" >
-                <template v-slot:item.createDate="{ item }">
-                    <span>{{item.createDate|dateFormat}}</span>
-                </template>
+                no-data-text='暂无数据'
+                disable-sort
+                hide-default-footer>
                 <template v-slot:item.updateDate="{ item }">
                     <span>{{(item.updateDate || item.createDate)|dateFormat}}</span>
                 </template>
@@ -129,7 +128,7 @@
         right
         class="fab"
       >
-        <v-icon>add</v-icon>
+      <v-icon>add</v-icon>
       </v-btn>
       <v-snackbar :color='snackbarColor' v-model="snackbar" >
             {{ tipsText }}
@@ -156,15 +155,16 @@ export default {
             categories: [],
             tags: [],
             items: [],
+            headerProps: { 'disable-sort': true, },
             headers: [
-                { text: '状态', align: 'center', sortable: true, value: 'status' },
-                { text: '素材名', align: 'start', sortable: false, value: 'title' },
-                { text: '创建人', align: 'start', sortable: true, value: 'createBy' },
-                // { text: '浏览量', align: 'center', sortable: true, value: 'browseCount' },
-                { text: '创建日期', align: 'center', sortable: true, value: 'createDate' },
-                { text: '修改日期', align: 'center', sortable: true, value: 'updateDate' },
-                { text: '累计分享', align: 'center', sortable: true, value: 'shareCount' },
-                { text: '操作项', align: "center" ,value: 'actions', sortable: false },
+                { text: '状态', align: 'd-none', sortable: false, value: 'status' },
+                { text: '排序号', align: 'center', sortable: false, value: 'orderNum' },
+                { text: '素材名', align: 'd-none', sortable: false, value: 'title' },
+                { text: '创建人', align: 'd-none', sortable: false, value: 'createBy' },
+                // { text: '浏览量', align: 'd-none', sortable: true, value: 'browseCount' },                
+                { text: '修改日期', align: 'd-none', sortable: false, value: 'updateDate' },
+                { text: '累计分享', align: 'center', sortable: false, value: 'shareCount' },
+                { text: '操作项', align: "d-none" ,value: 'actions', sortable: false },
                 // { text: '', value: 'data-table-expand' },
             ]
         }

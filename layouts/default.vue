@@ -131,6 +131,7 @@ export default {
       this.items = reduce(
         res,
         (r, v, k) => {
+          v.model = true
           if (
             isUndefined(v.parentId) ||
             isNull(v.parentId) ||
