@@ -168,19 +168,20 @@ export default {
     },
     methods: {
         onDragEnd(item, evt) {
-            let pid = toNumber(item.parentId);
+            let pid = toNumber(item.parentId || 0);
             let toPid = toNumber(evt.to.dataset.parentId)
             let tid = toNumber(evt.to.id)
             let p = find(this.resouceItems, ['id', pid])
+            let pChildren = p ? p.children : this.items
             let toP = find(this.resouceItems, ['id', toPid])
             let isChangeParent = !(pid == toPid)
-            let oldIndex = findIndex(p.children, (o) => o.id == item.id)
-            let newIndex = findIndex(isChangeParent ? toP.children : p.children, (o) => o.id == tid)
+            let oldIndex = findIndex(pChildren, (o) => o.id == item.id)
+            let newIndex = findIndex(!isChangeParent ? pChildren : toP.children, (o) => o.id == tid)
             if (!isChangeParent) {
                 //同层互换位置
                 // let p = find(this.items, ['id', pid])
                 let pIndex = findIndex(this.resouceItems, ['id', p.id])
-                p.children.splice(newIndex, 0, p.children.splice(oldIndex, 1)[0]);
+                pChildren.splice(newIndex, 0, pChildren.splice(oldIndex, 1)[0]);
                 // this.$set(this.resouceItems, pIndex, p)
             } else {
                 item.parentId = toP.id
