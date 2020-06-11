@@ -166,7 +166,7 @@
             v-if="!uploading"
             class="file-input mr-4"
             :placeholder="
-              fileInputRestrict == 0 ? '已达到上传数量限制' : '点击上传素材'
+              fileInputRestrict == 0 ? '数量已达上限' : '点击上传素材'
             "
             :disabled="blockLoading || fileInputRestrict <= 0"
             :counter="fileInputRestrict"
@@ -918,7 +918,7 @@ export default {
   position: fixed;
   bottom: 40px;
   right: 0;
-  z-index: 99;
+  z-index: 4;
 }
 .actions.hold.mobile {
   bottom: 0;

@@ -377,6 +377,6 @@ export default {
 
 <style scoped>
 .category-container /deep/ .head {
-    position: sticky; top:0; z-index:1;
+    position: sticky; top:0; z-index:4;
 }
 </style>
