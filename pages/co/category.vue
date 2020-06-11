@@ -96,8 +96,8 @@
                             <v-col><div class='item-label'>{{item.name}}</div></v-col>
                             <v-spacer v-if='isEditMode'></v-spacer>
                             <v-scroll-x-transition hide-on-leave >
-                                <v-btn :loading='loading' fab icon color='info' v-if='isEditMode'>
-                                    <v-icon >menu</v-icon>
+                                <v-btn class='pa-1' small :loading='loading' fab icon color='info' v-if='isEditMode'>
+                                    <v-icon>menu</v-icon>
                                 </v-btn>
                             </v-scroll-x-transition>
                             </v-row>
@@ -108,17 +108,18 @@
                         <component @input='onOpenItemOption' :value='isOpenOption(item.id)' open-on-hover direction='left'  :is='$vuetify.breakpoint.xsOnly ? "v-speed-dial" : "v-row"' >
                             <template v-slot:activator>
                                 <v-btn
-                                    class='mr-n2'
+                                    class='mr-n2 pa-1'
                                     @click.stop="onOpenItemOption(item.id)"
                                     color="blue darken-2"
                                     dark
+                                    small
                                     fab
                                     icon >
                                 <v-icon v-if="isOpenOption(item.id)">close</v-icon>
                                 <v-icon v-else>more_vert</v-icon>
                                 </v-btn>
                             </template>
-                            <v-row no-gutters class='flex-nowrap mr-1 px-1 py-1 accent' style='border-radius:4rem;'>
+                            <v-row no-gutters class='flex-nowrap mr-1 pa-1 accent' style='border-radius:4rem;'>
                                 <v-btn @click.stop='openEdit(item, true)' fab icon small color="info">
                                     <v-icon small  >edit</v-icon>
                                 </v-btn>

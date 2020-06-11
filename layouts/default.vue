@@ -113,7 +113,7 @@
         <nuxt />
       </v-container>
     </v-content>
-    <v-footer :fixed="fixed" app>
+    <v-footer :fixed="fixed" app v-if="$vuetify.breakpoint.mdAndUp">
       <span>&copy; {{ new Date().getFullYear() }}</span>
     </v-footer>
   </v-app>

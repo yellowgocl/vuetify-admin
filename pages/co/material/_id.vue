@@ -1,21 +1,31 @@
 <template>
   <v-container
-    ref='viewport'
     class="co-material-id overflow-y-auto"
     :class="{ blur: dialog }"
     v-scroll="onScroll"
   >
-    <v-toolbar dark class="header-title">
-      <v-toolbar-title>编辑素材</v-toolbar-title>
+    <v-toolbar flat dark class="header-title" fixed>
+      <v-toolbar-title :class='{"subtitle-1":$vuetify.breakpoint.xsOnly }'>编辑素材</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items v-if="!dialog">
         <v-switch
+            class="video-mode-switch ma-0 pa-0"
+            :class='{"mr-n3":$vuetify.breakpoint.xsOnly }'
+              :true-value="1"
+              :false-value="0"
+              hide-details
+              v-model="data.status"
+              inset
+              :dense='$vuetify.breakpoint.xsOnly'
+              :label="$vuetify.breakpoint.xsOnly ? null : (`状态: ${!!data.status ? '启用' : '禁用'}`)"
+            ></v-switch>
+        <!-- <v-switch
           class="video-mode-switch ma-0 pa-0"
           hide-details
           v-model="isVideoMode"
           inset
           :label="`${isVideoMode ? '视频模式' : '图片模式'}`"
-        ></v-switch>
+        ></v-switch> -->
         <!-- <v-btn @click.stop='exit(true)' :loading='blockLoading' :disabled='blockLoading' color="secondary" icon dark>
           <v-icon>close</v-icon>
         </v-btn>
@@ -23,33 +33,39 @@
           <v-icon>done</v-icon>
         </v-btn> -->
       </v-toolbar-items>
-    </v-toolbar>
-    <v-card flat class="py-6">
-      <v-card-text>
-        <v-row align="center" no-gutters>
+      <template v-slot:extension>
+          <v-row justify='space-around' class='flex-nowrap' align="center" no-gutters>
           <v-col>
-            <div class="subtitle-1 info--text">素材预览</div>
+            <v-tabs
+              v-model="tab"
+              background-color="transparent"
+              color="primary">
+              <v-tab
+                v-for="item in tabs"
+                :key="item"
+              >
+                {{ item }}
+              </v-tab>
+            </v-tabs>
           </v-col>
-          <!-- <v-switch
-            class="video-mode-switch ma-0 pa-0"
-            hide-details
-            v-model="isVideoMode"
-            inset
-            :label="`${isVideoMode ? '视频模式' : '图片模式'}`"
-          ></v-switch> -->
+          
           <v-btn
+            :disabled='!hasMedia'
             @click.stop="dragMode = !dragMode"
             v-if="!isVideoMode"
-            color="secondary"
+            color="primary"
             :outlined="!dragMode"
             small
-            >{{ dragMode ? "完成编辑" : "编辑排序" }}</v-btn
-          >
+            >{{ dragMode ? "完成" : "排序" }}</v-btn>
         </v-row>
-
-        <v-row class="mb-1 mt-4" ref="mediaContainer">
-          <template v-if="!isVideoMode">
-            <v-col
+        </template>
+    </v-toolbar>
+    <v-card flat class="pb-6 pt-1">
+      <v-card-text>
+        <v-scroll-x-transition  hide-on-leave>
+          <div v-show='tab==0'>
+            <v-row  ref='mediaContainer' >
+              <v-col
               cols="6"
               sm="3"
               md="2"
@@ -88,9 +104,13 @@
                 ></v-img>
               </v-card>
             </v-col>
-          </template>
-          <template v-else>
-            <v-col cols="12">
+            </v-row>
+            <p v-if='!hasMedia' class="media-empty-tips body-2 pa-4 my-4 accent--text text--lighten-3 accent darken-2">😢&nbsp;&nbsp;&nbsp;未有图片内容, 请点击下方按钮进行上传&nbsp;&nbsp;&nbsp;↓↓↓↓ </p>
+          </div>
+          </v-scroll-x-transition>
+          <v-scroll-x-transition hide-on-leave>
+          <div v-show='tab==1'>
+            <v-col cols="12" v-if='hasMedia'>
               <v-card
                 color="accent"
                 class="pa-1 relative"
@@ -116,15 +136,14 @@
                 </video-player>
               </v-card>
             </v-col>
-          </template>
-        </v-row>
+            <p v-else class="media-empty-tips body-2 pa-4 my-4 accent--text text--lighten-3 accent darken-2">😢&nbsp;&nbsp;&nbsp;未有视频内容, 请点击下方按钮进行上传&nbsp;&nbsp;&nbsp;↓↓↓↓ </p>
+          </div>
+        </v-scroll-x-transition>
         <v-row class="flex-nowrap  my-4" no-gutters align="center">
           <v-file-input
             v-if="!uploading"
             class="file-input mr-4"
-            :placeholder="
-              fileInputRestrict == 0 ? '已达到上传数量限制' : '点击上传素材'
-            "
+            :placeholder="fileInputRestrict == 0 ? '已达到上传数量限制' : '点击上传素材'"
             :disabled="blockLoading || fileInputRestrict <= 0"
             :counter="fileInputRestrict"
             :rules="fileInputRule"
@@ -172,18 +191,9 @@
         <v-divider></v-divider>
         <v-row no-gutters class="mt-6">
           <v-col cols="12" sm="6" md="8">
-            <div class="subtitle-1 info--text mb-4 mt-4">信息编辑</div>
+            <div class="subtitle-1 accent--text text--lighten-2 mb-4 mt-4">信息编辑区</div>
           </v-col>
           <v-spacer></v-spacer>
-          <v-col align-self="end"
-            ><v-switch
-              :true-value="1"
-              :false-value="0"
-              v-model="data.status"
-              inset
-              :label="`状态: ${!!data.status ? '启用' : '禁用'}`"
-            ></v-switch
-          ></v-col>
         </v-row>
         <v-form
           @submit.prevent
@@ -274,7 +284,7 @@
               ></v-text-field
             ></v-col>
           </v-row>
-          <div class="subtitle-1 info--text mb-4 mt-8">标签管理</div>
+          <div class="subtitle-1 accent--text text--lighten-2 mb-2 mt-8">标签管理</div>
           <div>
             <v-chip
               v-for="(tag, index) in data.tags"
@@ -307,8 +317,7 @@
         <v-btn
           disabled
           color="secondary"
-          :x-large='!$vuetify.breakpoint.xsOnly'
-          :small='$vuetify.breakpoint.xsOnly'
+          :x-large='!$vuetify.breakpoint.mdAndDown'
           text
           ></v-btn
         >
@@ -320,8 +329,7 @@
           :loading="blockLoading"
           :disabled="blockLoading"
           color="secondary"
-          :x-large='!$vuetify.breakpoint.xsOnly'
-          
+          :x-large='!$vuetify.breakpoint.mdAndDown'
           text
           >&nbsp;&nbsp;取消编辑&nbsp;&nbsp;</v-btn
         >
@@ -333,8 +341,8 @@
             @click.stop="validate"
             :loading="blockLoading"
             :disabled="blockLoading || !hasModify"
-            color="primary"
-            :x-large='!$vuetify.breakpoint.xsOnly'
+            color="primary" 
+            :x-large='!$vuetify.breakpoint.mdAndDown'
             >&nbsp;&nbsp;&nbsp;&nbsp;确定保存&nbsp;&nbsp;&nbsp;&nbsp;</v-btn
           >
         </div>
@@ -478,6 +486,8 @@ export default {
         muted: true,
         language: "zh-CN"
       },
+      tab: null,
+      tabs: ['图片素材', '视频素材'],
       gridWidth: 0,
       uploading: false,
       uploadProgress: 0,
@@ -494,7 +504,6 @@ export default {
       displayTags: [],
       dialog: false,
       blockLoading: false,
-      isVideoMode: false,
       nameRules: [
         v => !!v || "分类名不能为空",
         v => (v && v.length <= 30) || "长度不能超过30个字符"
@@ -522,8 +531,15 @@ export default {
     //       return "9rem";
     //   }
     // },
+    hasMedia() {
+      let r = this.tab == 0 ? this.data.pics : this.data.videos
+      return r && r.length > 0
+    },
+    isVideoMode() {
+      return this.tab == 1
+    },
     actionsClass() {
-      return [!this.isScrollToBottom && "hold", !this.isScrollToBottom && 'grey darken-4', !this.isScrollToBottom ? 'mr-0 pt-4' : 'mr-4']
+      return [!this.isScrollToBottom && "hold", !this.isScrollToBottom && 'accent darken-1', !this.isScrollToBottom ? 'mr-0 pa-2' : 'mr-4', this.$vuetify.breakpoint.mdAndUp ? "" : "mobile"]
     },
     isEdit() {
       return !!this.$route.params.id;
@@ -548,20 +564,12 @@ export default {
   mounted() {
     // console.info(this.$route)
     let id = this.$route.params.id;
-    this.fetchData(id);
-    this.sortable = Sortable.create(this.$refs.mediaContainer, {
-      animation: 100,
-      disabled: true,
-      supportPointer: true,
-      onEnd: ({ newIndex, oldIndex, oldDraggableIndex, newDraggableIndex }) => {
-        this.data.pics.splice(newIndex, 0, this.data.pics.splice(oldIndex, 1)[0]);
-      }
-    });
+    this.fetchData(id); 
     this.$refs.form.resetValidation()
   },
   watch: {
     dragMode(n, o) {
-      this.sortable.disabled = !n;
+      // this.sortable.disabled = !n;
       this.sortable.option("disabled", !n);
     },
     data: {
@@ -650,6 +658,19 @@ export default {
         this.bannerFile = [];
       }
     },
+    initSortable() {
+      if (this.sortable || !this.$refs.mediaContainer ) {
+        return
+      }
+      this.sortable = Sortable.create(this.$refs.mediaContainer, {
+        animation: 100,
+        disabled: true,
+        supportPointer: true,
+        onEnd: ({ newIndex, oldIndex, oldDraggableIndex, newDraggableIndex }) => {
+          this.data.pics.splice(newIndex, 0, this.data.pics.splice(oldIndex, 1)[0]);
+        }
+      });
+    },
     fetchData(id) {
       if (!!id) {
         this.blockLoading = true;
@@ -661,7 +682,7 @@ export default {
             this.$nextTick(() => {
               this.reference = cloneDeep(this.data);
             });
-            this.isVideoMode = res.videos && res.videos.length > 0;
+            this.tab = res.videos && res.videos.length > 0 ? 1 : 0;
             let sources = reduce(
               res.videos,
               (r, v, k) => {
@@ -670,6 +691,7 @@ export default {
               },
               []
             );
+            this.$nextTick(() => this.initSortable())
             this.$set(this.playerOptions, "sources", sources[0]);
             this.$api.archiveGetCategory(id).then(res => {
               res = res.data
@@ -820,6 +842,11 @@ export default {
   top: 0;
   z-index: 5;
 }
+.media-empty-tips {
+  min-height: 10rem;
+  border:1px dashed white;
+  background: transparent !important;
+}
 .file-input {
   bottom: 0;
   left: 0;
@@ -839,10 +866,13 @@ export default {
 }
 .actions.hold {
   position: fixed;
-  bottom: 36px;
-  left: 0;
+  bottom: 40px;
   right: 0;
   z-index: 99;
+}
+.actions.hold.mobile{
+  bottom: 0;
+  left: 0;
 }
 .drag-mode {
   animation: shake 0.2s ease-out 0s infinite;

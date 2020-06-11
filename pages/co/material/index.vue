@@ -84,8 +84,8 @@
                         <v-progress-circular size='24' indeterminate color="primary"></v-progress-circular>
                     </template>
                     <template v-else>
-                        <v-row justify="space-around" class='actions flex-nowrap my-1 mr-n2 pa-1 accent' :class='{"mb-4": $vuetify.breakpoint.xsOnly}'>
-                            <nuxt-link :to='`/co/material/${item.id}`'><v-btn class="mr-1" fab small color='info' icon><v-icon >edit</v-icon></v-btn></nuxt-link>
+                        <v-row justify="space-between" class='actions flex-nowrap my-1 mr-n2 pa-1 accent' :class='{"mb-4": $vuetify.breakpoint.xsOnly}'>
+                            <nuxt-link :class="{ 'mr-4': $vuetify.breakpoint.xsOnly }" :to='`/co/material/${item.id}`'><v-btn fab small color='info' icon><v-icon >edit</v-icon></v-btn></nuxt-link>
                             <v-btn fab small color='pink' @click.stop="deleteItem(item)" icon><v-icon color='pink' >delete</v-icon></v-btn>
                         </v-row>
                     </template>
@@ -158,14 +158,14 @@ export default {
             items: [],
             headerProps: { 'disable-sort': true, },
             headers: [
-                { text: '状态', align: 'd-none', sortable: false, value: 'status' },
-                { text: '排序号', align: 'center', sortable: false, value: 'orderNum' },
+                { text: '状态', align: 'd-none', width: '3rem', sortable: false, value: 'status' },
+                { text: '排序号', align: 'center', width: '5rem', sortable: false, value: 'orderNum' },
                 { text: '素材名', align: 'd-none', sortable: false, value: 'title' },
                 { text: '创建人', align: 'd-none', sortable: false, value: 'createBy' },
                 // { text: '浏览量', align: 'd-none', sortable: true, value: 'browseCount' },                
                 { text: '修改日期', align: 'd-none', sortable: false, value: 'updateDate' },
                 { text: '累计分享', align: 'center', sortable: false, value: 'shareCount' },
-                { text: '操作项', align: "d-none" ,value: 'actions', sortable: false },
+                { text: '操作项', align: "d-none", width:'7rem' ,value: 'actions', sortable: false },
                 // { text: '', value: 'data-table-expand' },
             ]
         }
