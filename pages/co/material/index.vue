@@ -300,7 +300,7 @@ export default {
 </script>
 
 <style scoped>
-.co-material .actions {
+.co-material /deep/ .actions {
     border-radius: 3rem;
 }
 .co-material /deep/ .head {
