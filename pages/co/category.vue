@@ -56,7 +56,7 @@
                 </v-card-actions> -->
             </v-card>
         </v-dialog>
-        <v-card min-height='75vh' class='pb-6 category-container'>
+        <v-card min-height='75vh' class='pb-6 mb-6 category-container'>
             <v-btn
                 @click.stop='openEdit(null, false)'
                 color="secondary"

@@ -1,6 +1,6 @@
 <template>
 <v-container class="co-material">
-    <v-card >
+    <v-card class='pb-2' :class='{"mb-12":$vuetify.breakpoint.smAndDown}'>
         <v-card-title class='head grey darken-4' :class='{"pa-1":$vuetify.breakpoint.xsOnly}'>
             <v-col :class='{"subtitle-2":$vuetify.breakpoint.smAndDown}' cols=4 sm='3'>素材管理</v-col>
             <v-col cols=8 sm='9' :class='{"py-1": $vuetify.breakpoint.smAndDown}'>
@@ -127,7 +127,6 @@
         dark
         bottom
         right
-        class="fab"
       >
       <v-icon>add</v-icon>
       </v-btn>
@@ -219,15 +218,20 @@ export default {
             })
         },
         onChangePagination(e) {
-            this.fetchList({ pageNo: e })
+            this.fetchList({ pageNo: e }).then(res => {
+                this.$vuetify.goTo(0)
+            })
         },
         fetchList(params) {
             if (this.loading) {
-                return
+                return Promise.reject({
+                    code: -302,
+                    message: '正在记载，请稍后'
+                })
             }
             this.loading = true
             this.$nuxt.$loading.start()
-            this.$api.fetchAcrhiveList(assign({ pageSize: this.options.itemsPerPage, keywords: this.search }, params)).then(res => {
+            return this.$api.fetchAcrhiveList(assign({ pageSize: this.options.itemsPerPage, keywords: this.search }, params)).then(res => {
                 res = res.data
                 this.loading = false
                 this.total = res.total
@@ -238,9 +242,11 @@ export default {
                     null,
                     this.$route.path + '#' + encodeURIComponent(params ? params.pageNo : 1)
                 )
+                return res
             }, rej => {
                 this.loading = false
                 this.$nuxt.$loading.finish()
+                return rej
             })
         },
         getColor (count) {
