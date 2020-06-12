@@ -2,7 +2,7 @@ const path = require('path')
 const filenames = {
     development: '.env.dev',
     test: '.env.test',
-    production: '.env'
+    production: '../.env'
 }
 const env = process.env.NODE_ENV
 const filename = filenames[env]||filenames['production']
