@@ -6,6 +6,7 @@ export const mutations = {
 
 export const actions = {
     async nuxtServerInit ({ commit, state }, { req, app }) {
+      console.info(app.$axios.proxy)
     //   let auth = null
     //   if (req.headers.cookie) {
     //     // cookie found

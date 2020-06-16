@@ -17,7 +17,8 @@ function getUrl(opt) {
 function parseUri(opt, autoMock = true) {
     let result = getUrl(opt);
     if (typeof opt == 'object') {
-        if (/^true$/i.test(process.env.IS_PRODUCTION)) {
+        let isProduction = process.env.NODE_ENV == 'production'
+        if (isProduction) {
             opt.mock = false
         } else {
             opt.mock = opt.mock == undefined || opt.mock == null ? true : opt.mock

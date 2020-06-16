@@ -187,7 +187,7 @@ export default {
         bannerFile(n, o) {
             if (!!n) {
                 this.$api.fileUpload([n]).then(res => {
-                    this.$set(this.editItem, 'icon', res)
+                    this.$set(this.editItem, 'icon', res.data)
                 })
             }
         },
@@ -322,6 +322,7 @@ export default {
         fetchList() {
             this.items = []
             this.loading = true
+            this.inited = false
             this.$api.getCategoryList().then(res => {
                 this.resouceItems = res.data.content
                 this.openItems = concat(this.resouceItems, [])
@@ -361,7 +362,8 @@ export default {
                 this.snackbarMode = 1
                 this.loading = false
                 this.snackbar = true
-                this.resouceItems.splice(indexOf(this.resouceItems, item), 1)
+                let parent = find(this.resouceItems, ['id', item.parentId])
+                parent && parent.children.splice(indexOf(parent.children, item), 1)
                 // this.$nextTick(() => this.updateList(this.resouceItems))
             }, rej => {
                 this.tipsText = rej.messaage
