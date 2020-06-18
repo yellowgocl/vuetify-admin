@@ -1,6 +1,6 @@
 <template>
-<v-container class="co-material">
-    <v-card class='pb-2' :class='{"mb-12":$vuetify.breakpoint.smAndDown}'>
+<v-container fluid class="co-material">
+    <v-card min-height='75vh' class='pb-2' :class='{"mb-12":$vuetify.breakpoint.smAndDown}'>
         <v-card-title class='head grey darken-4' :class='{"pa-1":$vuetify.breakpoint.xsOnly}'>
             <v-col :class='{"subtitle-2":$vuetify.breakpoint.smAndDown}' cols=4 sm='3'>素材管理</v-col>
             <v-col cols=8 sm='9' :class='{"py-1": $vuetify.breakpoint.smAndDown}'>
@@ -36,7 +36,7 @@
                     placeholder='选择分类(可多选)'
                     multiple
                     clearable
-                    @blur.stop='onSearch'
+                    @change='onSearch'
                 ></v-select>
             </v-col>
             <v-col cols=12 sm='6'>
@@ -53,7 +53,7 @@
                     placeholder='选择标签(可多选)'
                     multiple
                     clearable
-                    @blur='onSearch'
+                    @change='onSearch'
                 ></v-select>
             </v-col>
             </v-row>
@@ -114,7 +114,8 @@
                     </v-container>
                 </template>
             </v-data-table>
-            <v-row align='stretch'><v-spacer></v-spacer><v-col style='flex-grow: 0'><v-pagination @input='onChangePagination' v-model="page" :length="paginationCount"></v-pagination></v-col></v-row>
+            <no-data v-else ></no-data>
+            <v-row v-if='items && items.length > 0' align='stretch'><v-spacer></v-spacer><v-col style='flex-grow: 0'><v-pagination @input='onChangePagination' v-model="page" :length="paginationCount"></v-pagination></v-col></v-row>
         </v-card-text>
     </v-card>
     <v-btn
@@ -139,7 +140,9 @@
 
 <script>
 import { unionWith, merge, toNumber, assign, pick, keys, unset, isNaN } from 'lodash'
+import noData from '~/components/NoData'
 export default {
+    components: { noData },
     data() {
         return {
             selectedCategoies: [],

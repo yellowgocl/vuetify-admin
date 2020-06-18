@@ -230,7 +230,7 @@
         >
           <v-autocomplete
             v-model="data.categoryIds"
-            item-text="name"
+            item-text="fullName"
             item-value="id"
             multiple
             chips
@@ -480,18 +480,6 @@
         ><v-icon dark>cancel</v-icon></v-btn
       >
     </v-snackbar>
-    <!-- <v-btn
-      right
-      fixed
-      bottom
-      fab
-      :loading="blockLoading"
-      :disabled="blockLoading || !hasModify"
-      class='mr-4 mb-12'
-      color="primary"
-      x-large
-        ><v-icon>done</v-icon></v-btn
-      > -->
   </v-container>
 </template>
 
@@ -515,6 +503,7 @@ import { setTimeout } from "timers";
 export default {
   data() {
     return {
+      testSelected: ['123','123'],
       playerOptions: {
         fluid: true,
         muted: true,
@@ -779,8 +768,26 @@ export default {
       });
       this.$api.getCategoryList().then(res => {
         res = res.data;
-        this.categories = res.content;
+        // this.categories = res.content;
+        this.categories = map(res.content, o => {
+          let pid = o.parentId
+          let names = [o.name]
+          while(pid) {
+            let temp = find(res.content, ['id', pid])
+            if (temp) {
+              pid = temp.parentId || 0
+              names.unshift(temp.name)
+            } else {
+              pid = null
+            }
+          }
+          o.fullName = names.join('/')
+          return o
+        })
       });
+    },
+    filterCategoryBreadcurmbs(pid) {
+    
     },
     onUpload(index) {
       let fileInput = this.$refs["file-input" + index];

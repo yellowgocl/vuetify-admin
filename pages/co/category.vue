@@ -24,7 +24,7 @@
                     >
                     <v-row class='mb-6'>
                         <v-col cols='12' sm="5">
-                            <v-img class='grey' :height='250' :src='editItem.icon'></v-img>
+                            <v-img class='border-tips' :height='250' :src='editItem.icon'></v-img>
                         </v-col>
                         <v-col align-self='end' cols="12" sm="7">
                             <v-card-title>{{editItem.name}}</v-card-title>
@@ -33,6 +33,8 @@
                                 <div class='grey--text mb-0'>最近更新自: <strong class='info--text text--darken-0 font-weight-bold'>{{editItem.updateBy}}</strong></div>
                             </v-card-text>
                             <v-file-input 
+                                ref='file'
+                                hidden
                                 v-model="bannerFile" 
                                 label="上传分类题图" 
                                 accept="image/*">
@@ -135,6 +137,7 @@
                         
                     </template>
                 </v-treeview>
+                <no-data v-else ></no-data>
             </v-card-text>
             <!-- <v-row v-else align-self='center' no-gutters align='center' justify='center'>
                 <v-col align-self='center' cols='4 text-center'>
@@ -149,9 +152,10 @@
 
 <script>
 import draggable from 'vuedraggable'
+import noData from '~/components/NoData'
 import { map, groupBy, assign, indexOf, chain, concat, omit, find, toNumber, findIndex } from 'lodash' 
 export default {
-    components: { draggable },
+    components: { draggable, noData },
     data() {
         return {
             snackbarMode: 0,
@@ -167,7 +171,6 @@ export default {
             valid: false,
             lazy: false,
             dialog: false,
-            model: true,
             items: [],
             openItems: [],
             resouceItems: [],
@@ -372,7 +375,7 @@ export default {
                 this.snackbar = true
                 return Promise.reject(rej)
             })
-        }
+        },
     }
 }
 </script>
@@ -380,5 +383,9 @@ export default {
 <style scoped>
 .category-container /deep/ .head {
     position: sticky; top:0; z-index:4;
+}
+.border-tips {
+  border: 1px dashed var(--v-accent-base);
+  background-color: transparent !important;
 }
 </style>
