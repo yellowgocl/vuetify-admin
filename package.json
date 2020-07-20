@@ -20,7 +20,7 @@
     "@nuxtjs/axios": "^5.3.6",
     "@nuxtjs/dotenv": "^1.4.0",
     "gsap": "^3.3.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "nuxt": "^2.0.0",
     "qs": "^6.9.4",
     "sortablejs": "^1.10.2",
