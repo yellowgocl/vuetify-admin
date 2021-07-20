@@ -24,7 +24,7 @@
     "nuxt": "^2.0.0",
     "qs": "^6.9.4",
     "sortablejs": "^1.10.2",
-    "urijs": "^1.19.2",
+    "urijs": "^1.19.7",
     "vconsole": "^3.3.4",
     "vue-video-player": "^5.0.2",
     "vuedraggable": "^2.23.2"
